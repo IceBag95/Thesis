@@ -35,7 +35,7 @@ def setup_dataset():
     df.drop(df[df.duplicated()].index, inplace=True)
     df.to_csv("./Dataset/clean_data.csv", index=False)
 
-    print(df)
+    #print(df)
 
     #
     # ------------------------------------------------------------------------------------------
@@ -49,9 +49,12 @@ def setup_dataset():
     correlation_matrix = df.corr()
 
     # Visualize the correlation matrix
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f")
-    plt.show()
+    # plt.figure(figsize=(10, 8))
+    # sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+    # plt.show()
+
+    # sns.pairplot(df, hue='target')
+    # plt.show()
 
     # from the plot it seems that there is not much linear correlation so linear regression 
     # is not an option. Also the correlation table never exeeds 0.4 for any value when correlated
@@ -73,8 +76,8 @@ def setup_dataset():
                 print(f'{idx} already in idx_list')
         # print(temp[col])
 
-    print(idx_list)
-    print(len(idx_list))
+    # print(idx_list)
+    # print(len(idx_list))
 
     # Not the cleanest implementation of trying to find all the different entries that 
     # can be considered outliers. Don't need that for random forest but it will be good 
