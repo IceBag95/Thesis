@@ -1,3 +1,4 @@
+import joblib
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -88,5 +89,6 @@ cm = confusion_matrix(y_test, preds, labels=rfc.classes_)
 
 print(classification_report(y_test,preds))
 
+joblib.dump(rfc, '../Back-end/ml_model/RandomForestModel.pkl')
 
 
