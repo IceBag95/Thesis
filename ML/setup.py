@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
+from sklearn.preprocessing import MinMaxScaler
 
 def setup_dataset():
     df = pd.read_csv("/Users/panagiotispagonis/Documents/ΠΜΣ/ΕΡΓΑΣΙΑ ΔΕ/Heart Attack Dataset/Heart_Attack.csv")
@@ -19,6 +20,13 @@ def setup_dataset():
     # are 3 categories of slopes flat upgoing downgoing.
     # For certainty Ι'll have to ask the proffessor so I do not make a mess out of the dataset.
     #
+
+    labels_that_need_scaling_list = ['age', 'trestbps', 'cholesterol', 'max heart rate', 'oldpeak']
+    
+    for label in labels_that_need_scaling_list:
+        scaler = MinMaxScaler()
+        df[label] = scaler.fit_transform(df[[label]])
+
     df = df.drop('ST slope', axis=1)
     df.drop(df[(df['target'] != 1) & (df['target'] != 0)].index, inplace=True)
     df.drop(df[df['cholesterol'] == 0].index, inplace=True)

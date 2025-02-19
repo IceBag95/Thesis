@@ -7,4 +7,4 @@ class MlModelConfig(AppConfig):
     name = 'ml_model'
 
     def ready(self):
-        train_model()
+        self.model = train_model()

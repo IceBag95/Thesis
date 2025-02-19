@@ -1,5 +1,6 @@
-import joblib
-from sklearn.ensemble import AdaBoostClassifier
+# import joblib
+from sklearn.ensemble import AdaBoostClassifier, StackingClassifier
+from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -18,7 +19,7 @@ def plot_errors_for_n_estimators(base_learner, X_train, y_train, X_test, y_test)
     stable_index = -1
 
 
-    for n in range(50,500):
+    for n in range(50,500, 50):
         rfc = AdaBoostClassifier(estimator=base_learner, n_estimators=n, random_state=101)
         rfc.fit(X_train, y_train)
         preds = rfc.predict(X_test)
@@ -36,12 +37,15 @@ def plot_errors_for_n_estimators(base_learner, X_train, y_train, X_test, y_test)
         prev_err = err
 
     # print(f'Min missclassifications {min(errors)} at index {missclassifications.index(min(errors))}')
-    plt.plot(range(50,500),errors)
-    plt.show()
+    # plt.plot(range(50,500),errors)
+    # plt.show()
     print(f'Stable Index: {stable_index}')
     return stable_index
 
 def train_model():
+
+    print('Entered adaboost training')
+
     setup.setup_dataset()
 
     df = pd.read_csv("./Dataset/clean_data.csv")
@@ -49,6 +53,7 @@ def train_model():
     X = pd.get_dummies(df.drop('target',axis=1),drop_first=True)
 
     y = df['target']
+
     # Split data into training and testing
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
 
@@ -72,13 +77,14 @@ def train_model():
 
     print(grid.best_params_)
 
-    ada_boost = AdaBoostClassifier(estimator=base_learner, n_estimators=grid.best_params_.get('n_estimators'), random_state=101)
-    ada_boost.fit(X_train,y_train)
-    preds = ada_boost.predict(X_test)
+    ada_boost_model = AdaBoostClassifier(estimator=base_learner, n_estimators=grid.best_params_.get('n_estimators'), random_state=101)
+    ada_boost_model.fit(X_train,y_train)
+    preds = ada_boost_model.predict(X_test)
     print(classification_report(y_test,preds))
 
+    # joblib.dump(ada_boost, 'Back-end/ml_model/AdaBoost.pkl')
 
-    joblib.dump(ada_boost, 'Back-end/ml_model/AdaBoost.pkl')
+    return ada_boost
 
-
-train_model()
+# During full run this should be removed
+# train_model()
