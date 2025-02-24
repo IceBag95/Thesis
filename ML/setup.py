@@ -11,7 +11,7 @@ from sklearn.preprocessing import MinMaxScaler
 def setup_dataset():
     df = pd.read_csv("/Users/panagiotispagonis/Documents/ΠΜΣ/ΕΡΓΑΣΙΑ ΔΕ/Heart Attack Dataset/Heart_Attack.csv")
 
-    df.to_csv("./Dataset/raw_data.csv")
+    df.to_csv("../Dataset/raw_data.csv")
 
     #-----------------------------------------------------------------------------------------------
     # I should probably get rid of the Slope column since the values represented there are at best 
@@ -41,7 +41,7 @@ def setup_dataset():
     df = pd.concat([df[['age']], dummy_df[['Male']], df.drop(['age'], axis=1)], axis=1)
 
     df.drop(df[df.duplicated()].index, inplace=True)
-    df.to_csv("./Dataset/clean_data.csv", index=False)
+    df.to_csv("../Dataset/clean_data.csv", index=False)
 
     #print(df)
 

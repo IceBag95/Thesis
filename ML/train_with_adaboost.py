@@ -48,7 +48,7 @@ def train_model():
 
     setup.setup_dataset()
 
-    df = pd.read_csv("./Dataset/clean_data.csv")
+    df = pd.read_csv("../Dataset/clean_data.csv")
 
     X = pd.get_dummies(df.drop('target',axis=1),drop_first=True)
 
