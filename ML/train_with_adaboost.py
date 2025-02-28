@@ -69,7 +69,7 @@ def train_model():
 
     # Grid Search for best params after the stabilazation point of the plot
     grid_params = {
-        'n_estimators': list(range(current_least_error_index,501))
+        'n_estimators': list(range(current_least_error_index,501,10))
     }
 
     grid = GridSearchCV(ada_boost ,param_grid=grid_params, verbose=3)
