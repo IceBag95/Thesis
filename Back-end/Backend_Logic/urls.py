@@ -21,4 +21,5 @@ from django.urls import path
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('predict', views.heart_attack_prediction, name='predict'),
+    path('makeprediction', views.make_heart_attack_prediction, name='makeprediction'),
 ]

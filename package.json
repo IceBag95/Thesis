@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "react-step-progress-bar": "^1.0.3",
+    "react-stepper-horizontal": "^1.0.11"
+  }
+}

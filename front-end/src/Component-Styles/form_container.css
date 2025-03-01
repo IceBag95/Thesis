@@ -1,0 +1,5 @@
+.form-container {
+    display: 'flex'; /* this is overriden from block disp due to it being form */
+    flex-direction: 'column';
+    width: '100%';
+}
