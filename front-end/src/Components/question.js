@@ -1,11 +1,10 @@
 import React from "react";
-import Answers from "./answers";
 
 
-function Question (){
+function Question ({ question }){
 
     return <div>
-        <h3>Question: </h3>
+        <h3>Question: {question}</h3>
     </div>
 
 }

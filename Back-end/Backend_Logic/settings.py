@@ -16,7 +16,7 @@ import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-FRONT_END_DIR = BASE_DIR.resolve().parent / 'front-end' / 'build'
+FRONT_END_DIR = BASE_DIR.resolve().parent / 'front-end' 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
@@ -117,7 +117,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATICFILES_DIRS = [
-    Path.resolve(FRONT_END_DIR)/"static/",  # Add React build directory to static files
+    Path.resolve(FRONT_END_DIR) / "build" / "static/",  # Add React build directory to static files
 ]
 
 # Static files (CSS, JavaScript, Images)

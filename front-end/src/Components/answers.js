@@ -1,16 +1,20 @@
 import React from "react";
 
-function Answers() {
+function Answers( { data } ) {
+
+    console.log(Array.isArray(data.answers));
 
     return(
-        <div>
-            <ol>
-                <li>Answer 1</li>
-                <li>Answer 2</li>
-                <li>Answer 3</li>
-                <li>Answer 4</li>
-            </ol>
-        </div>
+        <ol>
+            {Array.isArray(data.answers) ? (
+                data.answers.map((ans, idx) => (
+                    <li key={idx}>{ans}</li>
+                ))
+            ) : (
+                <p>Trying to load answers</p>
+            )}
+        </ol>
+
     )
 }
 

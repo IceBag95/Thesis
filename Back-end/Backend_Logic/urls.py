@@ -22,4 +22,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('predict', views.heart_attack_prediction, name='predict'),
     path('makeprediction', views.make_heart_attack_prediction, name='makeprediction'),
+    path('get_initial_info', views.send_initial_info, name='get_initial_info'),
 ]

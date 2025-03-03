@@ -18,6 +18,7 @@ const makeNumberOfQuestions = () => {
 const steps = makeNumberOfQuestions();
 
 export default function BaseContainer() {
+  const [result, setResult] = React.useState({});
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set());
 
@@ -45,6 +46,27 @@ export default function BaseContainer() {
     setActiveStep(0);
   };
 
+  React.useEffect(() => {
+      const fetchData = async () => {
+        if (activeStep === steps.length - 1) {
+          try {
+            const response = await fetch("http://localhost:8000/makeprediction");
+            if (response.ok) {
+              const result = await response.json();
+              console.log("Fetched Data:", result);
+              setResult(result);
+            } else {
+              console.error("Failed to fetch data:", response.statusText);
+            }
+          } catch (error) {
+            console.error("Error fetching data:", error);
+          }
+        }
+      };
+    
+      fetchData();
+  }, [activeStep])
+
   return (
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
       <Stepper activeStep={activeStep} sx={{width: '50%'}}>
@@ -65,18 +87,22 @@ export default function BaseContainer() {
         <React.Fragment>
           <Typography sx={{ mt: 2, mb: 1 }}>
             All steps completed - you&apos;re finished
-            {/* Here we add the async logic with the prediction */}
+            {/* Here we add the async logic with the prediction */
+              <h3>{JSON.stringify(result)}</h3>
+            }
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
             <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleReset}>Reset</Button>
+            <Button onClick={handleReset}>Νέα Πρόβλεψη</Button>
           </Box>
         </React.Fragment>
       ) : (
         <React.Fragment sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
           <Typography sx={{ mt: 2, mb: 1 , display: 'flex', width: '60%'}}>
-            {/* Step {activeStep + 1} */}
+            {/* Step {activeStep + 1} 
+            */}
             <FormContainer />
+            
           </Typography>
           <Box sx={{ display: 'flex', pt: 2 , width: '50%', justifyContent:'space-evenly' , alignItems: 'center'}}>
             <Button
