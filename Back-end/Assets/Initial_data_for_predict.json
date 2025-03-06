@@ -1,5 +1,112 @@
 {
-    "id": 0,
-    "question": "Select your gender",
-    "answers": ["Male", "Female"]
+    "qna": [
+        {
+            "for_column": "age",
+            "question"  : "Εισάγετε την Ηλικία σας:",
+            "answers"   : []
+        },
+        {
+            "for_column": "Male",
+            "question"  : "Επιλέξετε το φύλο σας",
+            "answers"   : [
+                            {
+                                "shown_value": "Male",
+                                "actual_value": "True"
+                            }, 
+                            {
+                                "shown_value": "Female",
+                                "actual_value": "False"
+                            }
+                        ]
+        },
+        {
+            "for_column": "Chest pain type",
+            "question"  : "Αιθάνεστε πόνους στο στήθος;",
+            "answers"   : [
+                            {
+                                "shown_value": "Όχι καθόλου",
+                                "actual_value": 1
+                            },
+                            {
+                                "shown_value": "Ναι, μικρού επιπέδου",
+                                "actual_value": 2
+                            },
+                            {
+                                "shown_value": "Ναι, μεσαίου επιπέδου", 
+                                "actual_value": 3
+                            },
+                            {
+                                "shown_value": "Ναι, πολύ έντονους",
+                                "actual_value": 4
+                            }
+                        ]
+        },
+        {
+            "for_column": "trestbps",
+            "question"  : "Πόσους καρδιακούς χτύπους έχετε ανά λεπτό σε κατάσταση ξεκούρασης;",
+            "answers"   : []
+        },
+        {
+            "for_column": "cholesterol",
+            "question"  : "Πόση χοληστερόλη είχατε στις τελευταίες σας αιματολιγικές εξετάσεις",
+            "answers"   : []
+        },
+        {
+            "for_column": "fasting blood sugar",
+            "question"  : "Είναι τα επίπεδα σακχάρου σας σε κατάσταση νηστείας πάνω από 120mg/dl;",
+            "answers"   : [
+                                {
+                                    "shown_value": "Ναι",
+                                    "actual_value": "True"
+                                }, 
+                                {
+                                    "shown_value": "Όχι",
+                                    "actual_value": "False"
+                                }
+                            ]
+        },
+        {
+            "for_column": "resting ecg",
+            "question"  : "Ποιο ήταν το αποτέλεσμα του τελευταίου σας ηλεκτροκαρδιαγραφήματος;",
+            "answers"   : [
+                                {
+                                    "shown_value": "Φυσιολογικό",
+                                    "actual_value": 0
+                                }, 
+                                {
+                                    "shown_value": "Ανύψωση του ST",
+                                    "actual_value": 1
+                                },
+                                {
+                                    "shown_value": "Άλλο",
+                                    "actual_value": 2
+                                }
+                            ]
+        },
+        {
+            "for_column": "max heart rate",
+            "question"  : "Ποιοι ήταν οι μέγιστοι καρδιακοί παλμοί στο τελευταίο σας τεστ κοπώσεως;",
+            "answers"   : []
+        },
+        {
+            "for_column": "exercise angina",
+            "question"  : "Έχετε πόνους στο στήθος κατα τη διάρκεια άσκησης;",
+            "answers"   : [
+                                {
+                                    "shown_value": "Ναι",
+                                    "actual_value": "True"
+                                }, 
+                                {
+                                    "shown_value": "Όχι",
+                                    "actual_value": "False"
+                                }
+                            ]
+        },
+        {
+            "for_column": "oldpeak",
+            "question"  : "Παρατηρήθηκε υποχώρηση το ST τμήματος σε σχέση με το αντίστοιχο σε κατάσταση ξεκούρασης (oldpeak) στο τελευταίο σας τεστ κοπώσεως; Αν ναι πόσα χιλιοστά ήταν;",
+            "answers"   : []
+        }
+    ]
+
 }

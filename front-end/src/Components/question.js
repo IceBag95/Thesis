@@ -4,7 +4,7 @@ import React from "react";
 function Question ({ question }){
 
     return <div>
-        <h3>Question: {question}</h3>
+        <h3>{question}</h3>
     </div>
 
 }

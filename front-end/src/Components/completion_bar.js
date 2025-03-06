@@ -7,20 +7,14 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import FormContainer from './form_container';
 
-const makeNumberOfQuestions = () => {
-    let questionLabelArray = [];
-    for(let i = 0; i < 12; i++) {
-        questionLabelArray.push(`Question ${i+1}`)
-    }
-    return [...questionLabelArray];
-}
-
-const steps = makeNumberOfQuestions();
 
 export default function BaseContainer() {
+  const [steps, setSteps] = React.useState([]);
   const [result, setResult] = React.useState({});
   const [activeStep, setActiveStep] = React.useState(0);
   const [skipped, setSkipped] = React.useState(new Set());
+  const [userAnswers, setUserAnwers] = React.useState({ "usr_ans_list": []});
+  const [currentAns, setCurrentAns] = React.useState({});
 
 
   const isStepSkipped = (step) => {
@@ -29,6 +23,7 @@ export default function BaseContainer() {
 
   const handleNext = () => {
     let newSkipped = skipped;
+    let currentStep = activeStep;
     if (isStepSkipped(activeStep)) {
       newSkipped = new Set(newSkipped.values());
       newSkipped.delete(activeStep);
@@ -36,14 +31,43 @@ export default function BaseContainer() {
 
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
     setSkipped(newSkipped);
+
+    let myAnswer = userAnswers.usr_ans_list.find((ans) => ans.for_column == currentAns.for_column);
+    let ansPos = userAnswers.usr_ans_list.indexOf(myAnswer)
+    
+    // Handle total userAnswers array
+    let updatedUserAnswers = userAnswers;
+    if (ansPos == -1) {
+      updatedUserAnswers.usr_ans_list.push(currentAns);
+      setUserAnwers(updatedUserAnswers);
+    }
+    else {
+      updatedUserAnswers.usr_ans_list[ansPos].current_answer = currentAns.current_answer;
+      setUserAnwers(updatedUserAnswers);
+    }
+    
+    // Handle current ans that needs to be loaded for the user, either empty if 
+    // next activeStep is not in the Array yet, or the respective answer if it is.
+    if (activeStep + 1 >= userAnswers.usr_ans_list.length) {
+      setCurrentAns({});
+    }
+    else {
+      setCurrentAns(userAnswers.usr_ans_list[currentStep + 1]);
+    }
+
   };
 
   const handleBack = () => {
-    setActiveStep((prevActiveStep) => prevActiveStep - 1);
+    let prevActiveStep = activeStep - 1;
+    setCurrentAns(userAnswers.usr_ans_list[prevActiveStep]);
+    setActiveStep(prevActiveStep);
   };
 
   const handleReset = () => {
     setActiveStep(0);
+    setUserAnwers({ "usr_ans_list": []});
+    setCurrentAns({});
+    setResult({});
   };
 
   React.useEffect(() => {
@@ -70,7 +94,7 @@ export default function BaseContainer() {
   return (
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
       <Stepper activeStep={activeStep} sx={{width: '50%'}}>
-        {steps.map((label, index) => {
+        {steps.length > 0 ? steps.map((label, index) => {
           const stepProps = {};
           const labelProps = {};
           if (isStepSkipped(index)) {
@@ -80,10 +104,10 @@ export default function BaseContainer() {
             <Step key={label} {...stepProps}>
               <StepLabel {...labelProps}></StepLabel>
             </Step>
-          );
-        })}
+          )
+        }) : null}
       </Stepper>
-      {activeStep === steps.length ? (
+      {steps.length > 0 && activeStep === steps.length ? (
         <React.Fragment>
           <Typography sx={{ mt: 2, mb: 1 }}>
             All steps completed - you&apos;re finished
@@ -99,10 +123,7 @@ export default function BaseContainer() {
       ) : (
         <React.Fragment sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
           <Typography sx={{ mt: 2, mb: 1 , display: 'flex', width: '60%'}}>
-            {/* Step {activeStep + 1} 
-            */}
-            <FormContainer />
-            
+            <FormContainer step={activeStep} currAns={currentAns} setCurrAns={setCurrentAns} setNoQ={setSteps}/>          
           </Typography>
           <Box sx={{ display: 'flex', pt: 2 , width: '50%', justifyContent:'space-evenly' , alignItems: 'center'}}>
             <Button
@@ -114,7 +135,7 @@ export default function BaseContainer() {
               Back
             </Button>
             <Box sx={{ display: 'flex' }} />
-                <Button onClick={handleNext} sx={{ margin: "0px 20px" }}>
+                <Button onClick={handleNext} sx={{ margin: "0px 20px" }} disabled={!currentAns.current_answer}>
                 {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
                 </Button>
           </Box>
