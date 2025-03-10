@@ -67,7 +67,7 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns } ) {
                 ) : Array.isArray(answers) && answers.length == 0 ? (
                     <input  type="number" 
                             class="number-input"
-                            value={currAns.current_answer ? currAns.current_answer : ""}
+                            value={currAns.current_answer || ""}
                             onChange={handleNumberChange} />
                 ) : (
                     <p>Trying to load answers</p>
