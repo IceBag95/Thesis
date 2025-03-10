@@ -1,12 +1,14 @@
 # https://data.mendeley.com/datasets/yrwd336rkz/2
 
 
+import json
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 from scipy import stats
-from sklearn.preprocessing import MinMaxScaler
+#  from sklearn.preprocessing import MinMaxScaler
+from  pathlib import Path
 
 def setup_dataset():
     df = pd.read_csv("/Users/panagiotispagonis/Documents/ΠΜΣ/ΕΡΓΑΣΙΑ ΔΕ/Heart Attack Dataset/Heart_Attack.csv")
@@ -43,6 +45,11 @@ def setup_dataset():
     df.drop(df[df.duplicated()].index, inplace=True)
     df.to_csv("../Dataset/clean_data.csv", index=False)
 
+
+    columns = {"dataset_columns" : df.drop('target', axis=1).columns.tolist()}
+    columns_file = open(Path.cwd().parent / "Back-end" / "Assets" / "columns.json" , 'w')
+    json.dump(columns,columns_file)
+    columns_file.close()
     #print(df)
 
     #

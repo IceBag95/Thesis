@@ -82,9 +82,4 @@ def train_model():
     preds = ada_boost_model.predict(X_test)
     print(classification_report(y_test,preds))
 
-    # joblib.dump(ada_boost, 'Back-end/ml_model/AdaBoost.pkl')
-
-    return ada_boost
-
-# During full run this should be removed
-# train_model()
+    return ada_boost_model
