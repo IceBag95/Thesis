@@ -72,7 +72,7 @@ def make_heart_attack_prediction(request):
                     columns_copy.remove(curr_col)
                 else:
                     raise json.JSONDecodeError(f"Can't make prediction. Column {curr_col} does not seem to exist in the dataset.", "", 0)
-                print(f"\n {user_data_for_model} \n")
+                print(f"\n Batman \n {user_data_for_model} \n")
             
             if len(columns_copy) > 0:
                 raise json.JSONDecodeError(f"Can't make prediction. No data received for columns {columns_copy}", "", 0)

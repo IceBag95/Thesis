@@ -1,5 +1,7 @@
 Master's degree Thesis
 
+npm install react-scripts --save
+npm run build
 
 for my computer starts with: /usr/local/bin/python3.12 manage.py runserver --noreload       
 
