@@ -72,9 +72,15 @@ export default function BaseContainer() {
 
   React.useEffect(() => {
       const fetchData = async () => {
-        if (activeStep === steps.length - 1) {
+        if (activeStep === steps.length && steps.length > 0) {
           try {
-            const response = await fetch("http://localhost:8000/makeprediction");
+            const response = await fetch("http://localhost:8000/makeprediction", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(userAnswers),
+            });
             if (response.ok) {
               const result = await response.json();
               console.log("Fetched Data:", result);

@@ -1,17 +1,17 @@
 # https://data.mendeley.com/datasets/yrwd336rkz/2
 
 
+import json
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
+# import matplotlib.pyplot as plt
+# import seaborn as sns
 from scipy import stats
-from sklearn.preprocessing import MinMaxScaler
+#  from sklearn.preprocessing import MinMaxScaler
+from  pathlib import Path
 
 def setup_dataset():
-    df = pd.read_csv("/Users/panagiotispagonis/Documents/ΠΜΣ/ΕΡΓΑΣΙΑ ΔΕ/Heart Attack Dataset/Heart_Attack.csv")
-
-    df.to_csv("../Dataset/raw_data.csv")
+    df = pd.read_csv("../Dataset/raw_data.csv")
 
     #-----------------------------------------------------------------------------------------------
     # I should probably get rid of the Slope column since the values represented there are at best 
@@ -21,11 +21,11 @@ def setup_dataset():
     # For certainty Ι'll have to ask the proffessor so I do not make a mess out of the dataset.
     #
 
-    labels_that_need_scaling_list = ['age', 'trestbps', 'cholesterol', 'max heart rate', 'oldpeak']
+    # labels_that_need_scaling_list = ['age', 'trestbps', 'cholesterol', 'max heart rate', 'oldpeak']
     
-    for label in labels_that_need_scaling_list:
-        scaler = MinMaxScaler()
-        df[label] = scaler.fit_transform(df[[label]])
+    # for label in labels_that_need_scaling_list:
+    #     scaler = MinMaxScaler()
+    #     df[label] = scaler.fit_transform(df[[label]])
 
     df = df.drop('ST slope', axis=1)
     df.drop(df[(df['target'] != 1) & (df['target'] != 0)].index, inplace=True)
@@ -43,6 +43,11 @@ def setup_dataset():
     df.drop(df[df.duplicated()].index, inplace=True)
     df.to_csv("../Dataset/clean_data.csv", index=False)
 
+
+    columns = {"dataset_columns" : df.drop('target', axis=1).columns.tolist()}
+    columns_file = open(Path.cwd().parent / "Back-end" / "Assets" / "columns.json" , 'w')
+    json.dump(columns,columns_file)
+    columns_file.close()
     #print(df)
 
     #
@@ -54,7 +59,7 @@ def setup_dataset():
     # plt.scatter(pivot_df.index, pivot_df['target'])
     # plt.show()
 
-    correlation_matrix = df.corr()
+    # correlation_matrix = df.corr()
 
     # Visualize the correlation matrix
     # plt.figure(figsize=(10, 8))
