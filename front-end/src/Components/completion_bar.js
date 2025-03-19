@@ -116,9 +116,22 @@ export default function BaseContainer() {
       {steps.length > 0 && activeStep === steps.length ? (
         <React.Fragment>
           <Typography sx={{ mt: 2, mb: 1 }}>
-            All steps completed - you&apos;re finished
-            {/* Here we add the async logic with the prediction */
-              <h3>{JSON.stringify(result)}</h3>
+            {
+              <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                <p>Η διαδικασία ολοκληρώθηκε με αποτέλεσμα:</p>
+                {
+                  result.target ? 
+                    <h1 style={{color: 'red'}}> Υψηλή Πιθανότητα</h1>
+                  : 
+                    <h1 style={{color: 'green'}}> Χαμηλή Πιθανότητα</h1>
+                }
+                {
+                  result.target ? 
+                    <h3>Σύμφωνα με τα δεδομένα που εισήχθησαν ανιχνεύθηκε υψηλή πιθανότητα καρδιακής προσβολής</h3>
+                  : 
+                    <h3>Σύμφωνα με τα δεδομένα που εισήχθησαν προκύπτει χαμηλή πιθανότητα καρδιακής προσβολής</h3>
+                }
+              </div>
             }
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
