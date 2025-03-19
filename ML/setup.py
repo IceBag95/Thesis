@@ -11,9 +11,7 @@ from scipy import stats
 from  pathlib import Path
 
 def setup_dataset():
-    df = pd.read_csv("/Users/panagiotispagonis/Documents/ΠΜΣ/ΕΡΓΑΣΙΑ ΔΕ/Heart Attack Dataset/Heart_Attack.csv")
-
-    df.to_csv("../Dataset/raw_data.csv")
+    df = pd.read_csv("../Dataset/raw_data.csv")
 
     #-----------------------------------------------------------------------------------------------
     # I should probably get rid of the Slope column since the values represented there are at best 
@@ -61,7 +59,7 @@ def setup_dataset():
     # plt.scatter(pivot_df.index, pivot_df['target'])
     # plt.show()
 
-    correlation_matrix = df.corr()
+    # correlation_matrix = df.corr()
 
     # Visualize the correlation matrix
     # plt.figure(figsize=(10, 8))

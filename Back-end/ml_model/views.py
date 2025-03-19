@@ -99,7 +99,7 @@ def make_heart_attack_prediction(request):
 def send_initial_info(request):
 
     initial_data_path = Path(settings.BASE_DIR).resolve() / 'Assets' / 'Initial_data_for_predict.json'
-    print(f'Batman - Initial_data path: {initial_data_path}')
+    print(f'Initial_data path: {initial_data_path}')
 
     file = open(initial_data_path, 'r')
     initial_data = json.load(file)

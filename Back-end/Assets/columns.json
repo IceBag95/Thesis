@@ -1,1 +1,1 @@
-{"dataset_columns": ["age", "Male", "Chest pain type", "trestbps", "cholesterol", "fasting blood sugar", "resting ecg", "max heart rate", "exercise angina", "oldpeak"]}
+{"dataset_columns": ["age", "Male", "Unnamed: 0", "Chest pain type", "trestbps", "cholesterol", "fasting blood sugar", "resting ecg", "max heart rate", "exercise angina", "oldpeak"]}
