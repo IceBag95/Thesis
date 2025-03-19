@@ -4,10 +4,13 @@
 To successfully run the code please follow the next steps:
 
 1. Clone the repository
-2. Inside a terminal navigate to the Back-end dir and run `python3 manage.py migrate`.
-3. Inside a terminal navigate to front-end dir and run `npm install react-scripts --save`. This will create the node modules needed.
+
+Inside a terminal:
+
+2. Navigate to the Back-end dir and run `python3 manage.py migrate`.
+3. Navigate to front-end dir and run `npm install react-scripts --save`. This will create the node modules needed.
 4. In the same dir run `npm run build` to build the front end so it can be used by the server.
-5. To up the server run `python3 manage.py runserver --noreload` (to avoid running setup 2 times)
+5. Navigate back to the Back-end dir and run `python3 manage.py runserver --noreload` (to avoid running setup 2 times)
 
 
 #### Notes for me...
