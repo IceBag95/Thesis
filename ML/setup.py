@@ -27,7 +27,7 @@ def setup_dataset():
     #     scaler = MinMaxScaler()
     #     df[label] = scaler.fit_transform(df[[label]])
 
-    df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
+    df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)   
     df.drop('ST slope', axis=1, inplace=True)
     df.drop(df[(df['target'] != 1) & (df['target'] != 0)].index, inplace=True)
     df.drop(df[df['cholesterol'] == 0].index, inplace=True)
@@ -43,6 +43,7 @@ def setup_dataset():
 
     df.drop(df[df.duplicated()].index, inplace=True)
     print(df.head())
+    print(len(df))
     df.to_csv("../Dataset/clean_data.csv", index=False)
 
 
@@ -102,3 +103,6 @@ def setup_dataset():
     # algorithm i'll keep them into that csv file / df. Also these outliers are valid there is no
     # reason to get rid of them.
     #
+
+if __name__ == '__main__':
+    setup_dataset()
