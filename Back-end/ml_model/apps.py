@@ -18,7 +18,7 @@ class MlModelConfig(AppConfig):
         sys.path.append(ml_folder_path)
         
         print("Import path....")
-        from train_with_adaboost import train_model
+        from train_with_random_forest import train_model
 
         print("Train model....")
         cls.model = train_model()

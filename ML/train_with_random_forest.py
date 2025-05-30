@@ -1,4 +1,3 @@
-# import joblib
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,7 +5,6 @@ import seaborn as sns
 from scipy import stats
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.ensemble import RandomForestClassifier
-# from xgboost import XGBClassifier
 from sklearn.metrics import confusion_matrix,classification_report,ConfusionMatrixDisplay, accuracy_score
 import setup
 
@@ -40,7 +38,7 @@ def train_model():
 
     setup.setup_dataset()
 
-    df = pd.read_csv("./Dataset/clean_data.csv")
+    df = pd.read_csv("../Dataset/clean_data.csv")
 
     X = pd.get_dummies(df.drop('target',axis=1),drop_first=True)
 
@@ -51,13 +49,13 @@ def train_model():
     # To avoid recreating completely random X-Y splits when testing against different models 
     # it's important to assign a random state so the comparison is fair  
 
-    rfc = RandomForestClassifier(random_state=101)
+    rfc = RandomForestClassifier(random_state=101,criterion='entropy')
 
     # Do a grid search for our params. Because the machine could handle everything I did the search for all estimators from 10 to 120 n_estimators
     grid_params = {
         'n_estimators': list(range(100,501, 50)),
         'max_depth'   : [4,5],
-        'bootstrap'   : [True, False]
+        'bootstrap'   : [True]
     }
 
     grid = GridSearchCV(rfc ,param_grid=grid_params, verbose=3)
@@ -82,18 +80,12 @@ def train_model():
 
     cm = confusion_matrix(y_test, preds, labels=rfc.classes_)
 
-    # disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=rfc.classes_)
-
-    # disp.plot()
-
-    # plt.show()
-
     print(classification_report(y_test,preds))
 
     return rfc
 
     # joblib.dump(rfc, '../Back-end/ml_model/RandomForestModel.pkl')
 
-# During full run this should be removed
-# train_model()
+if __name__ == '__main__':
+    train_model()
 

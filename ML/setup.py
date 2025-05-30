@@ -4,28 +4,14 @@
 import json
 import pandas as pd
 import numpy as np
-# import matplotlib.pyplot as plt
-# import seaborn as sns
+import matplotlib.pyplot as plt
+import seaborn as sns
 from scipy import stats
-#  from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler
 from  pathlib import Path
 
 def setup_dataset():
     df = pd.read_csv("../Dataset/raw_data.csv")
-
-    #-----------------------------------------------------------------------------------------------
-    # I should probably get rid of the Slope column since the values represented there are at best 
-    # questionable. According to the dataset descreption there should be 2 categpries of Slope but
-    # there are four. Them being 4 makes no sense, since according to my reaserch online they
-    # are 3 categories of slopes flat upgoing downgoing.
-    # For certainty Ι'll have to ask the proffessor so I do not make a mess out of the dataset.
-    #
-
-    # labels_that_need_scaling_list = ['age', 'trestbps', 'cholesterol', 'max heart rate', 'oldpeak']
-    
-    # for label in labels_that_need_scaling_list:
-    #     scaler = MinMaxScaler()
-    #     df[label] = scaler.fit_transform(df[[label]])
 
     df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)   
     df.drop('ST slope', axis=1, inplace=True)
@@ -53,31 +39,35 @@ def setup_dataset():
     columns_file.close()
     #print(df)
 
-    #
-    # ------------------------------------------------------------------------------------------
-    #
-    # pivot_df = pd.pivot_table(df, values='target', index='age', aggfunc='count')
-    # print(pivot_df)
+    
+    #------------------------------------------------------------------------------------------
+    observations_path = Path.cwd().parent / "Dataset" / "Observations"
+    if not observations_path.exists():
+        observations_path.mkdir(parents=True, exist_ok=True)
+        
 
-    # plt.scatter(pivot_df.index, pivot_df['target'])
-    # plt.show()
-
-    # correlation_matrix = df.corr()
+    correlation_matrix = df.corr()
 
     # Visualize the correlation matrix
-    # plt.figure(figsize=(10, 8))
-    # sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f")
-    # plt.show()
-
-    # sns.pairplot(df, hue='target')
-    # plt.show()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f")
+    plt.savefig('../Dataset/Observations/heatmap_of_dataset.png')
 
     # from the plot it seems that there is not much linear correlation so linear regression 
     # is not an option. Also the correlation table never exeeds 0.4 for any value when correlated
-    # to target so nothing indicates a linear relationship between this metrics
-    #
-    # ------------------------------------------------------------------------------------------
-    #
+    # to target so nothing indicates a linear relationship between this metrics. 
+    # We will try it out though just to make sure
+    
+    # Visualize the correlation matrix
+    sns.pairplot(df, hue='target')
+    plt.savefig('../Dataset/Observations/pairplot_of_dataset.png')
+
+    # from this plot we can observe that the data is quite mixed there are not good indicators
+    # of target. Ideally we would like to see target being two quite separate groups when a
+    # columns is selected as a base.
+    
+    #------------------------------------------------------------------------------------------
+    
     # Outliers
     idx_list = []
     for col in df.columns:
@@ -96,10 +86,10 @@ def setup_dataset():
     # print(len(idx_list))
 
     # Not the cleanest implementation of trying to find all the different entries that 
-    # can be considered outliers. Don't need that for random forest but it will be good 
-    # for algorithms that have issues with outliers.
+    # can be considered outliers. Don't need that for desision tree based models but it 
+    # will be good for algorithms that have issues with outliers.
     #
-    # 34 rows with outliers found. Due to them being not that significant for random forest 
+    # 34 rows with outliers found. Due to them being not that significant for for desision tree based 
     # algorithm i'll keep them into that csv file / df. Also these outliers are valid there is no
     # reason to get rid of them.
     #
