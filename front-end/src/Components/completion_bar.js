@@ -15,7 +15,7 @@ export default function BaseContainer() {
   const [skipped, setSkipped] = React.useState(new Set());
   const [userAnswers, setUserAnwers] = React.useState({ "usr_ans_list": []});
   const [currentAns, setCurrentAns] = React.useState({});
-  const hasResults = React.useRef(false);
+  const [hasResults, setHasResults] = React.useState(false);
 
 
   const isStepSkipped = (step) => {
@@ -69,7 +69,7 @@ export default function BaseContainer() {
     setUserAnwers({ "usr_ans_list": []});
     setCurrentAns({});
     setResult({});
-    hasResults.current = false
+    setHasResults(false);
   };
 
   React.useEffect(() => {
@@ -94,7 +94,7 @@ export default function BaseContainer() {
             console.error("Error fetching data:", error);
           }
 
-          hasResults.current = true;
+          setHasResults(true);
 
         }
       }

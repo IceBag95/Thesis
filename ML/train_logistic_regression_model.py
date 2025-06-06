@@ -6,7 +6,6 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report, accuracy_score
 from  pathlib import Path
-from sklearn.preprocessing import MinMaxScaler, RobustScaler
 import setup
 
 
@@ -48,7 +47,7 @@ def train_model():
     X = pd.get_dummies(df.drop('target',axis=1),drop_first=True)
     y = df['target']
 
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=101)
     scaler = StandardScaler()
 
     X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)

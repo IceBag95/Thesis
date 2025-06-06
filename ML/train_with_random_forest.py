@@ -9,28 +9,72 @@ from sklearn.metrics import confusion_matrix,classification_report,ConfusionMatr
 import setup
 
 # In case we need it
-# def plot_errors_for_n_estimators(max_featues, bootstrap):
-#     errors = []
-#     missclassifications = []
+def plot_errors_for_n_estimators(X_train, y_train, X_test, y_test):
+    errors = []
+    missclassifications = []
 
-    # Plotted the whole thing, seems to start smothing out at arround the 200.
-    # Found the min missclassifications at exactly the 200 mark. So we will go with that.
-    # for n in range(100,500):
-    #     rfc = RandomForestClassifier(n_estimators=n, max_features=max_featues, bootstrap=bootstrap, random_state=101)
-    #     rfc.fit(X_train, y_train)
-    #     preds = rfc.predict(X_test)
-    #     err =  1 - accuracy_score(y_test,preds)
-    #     n_missed = np.sum( preds != y_test)
+    prev_err = float('inf')
+    stable_index = -1
+
+
+    for n in range(100, 500, 50):
+        rfc = RandomForestClassifier(n_estimators=n, random_state=101)
+        rfc.fit(X_train, y_train)
+        preds = rfc.predict(X_test)
+        err =  1 - accuracy_score(y_test,preds)
+        n_missed = np.sum( preds != y_test)
         
-    #     errors.append(err)
-    #     missclassifications.append(n_missed)
+        errors.append(err)
+        missclassifications.append(n_missed)
 
-    # print(f'Min missclassifications {min(missclassifications)} at index {missclassifications.index(min(missclassifications))}')
-    # plt.plot(range(100,500),errors)
-    # plt.show()
+        print(f'Index:{n}\nError:{err}\nPrevious Error:{prev_err}\nError diff:{abs(prev_err - err)}\nIs Prev erro diff that current {prev_err != err}')
 
-    # return missclassifications.index(min(missclassifications))
+        if abs(prev_err - err) < 0.1 and prev_err != err:
+            stable_index = n
+        
+        prev_err = err
 
+    plt.plot(range(100,500,50),errors)
+    plt.savefig('../Dataset/Observations/pairplot_of_dataset.png')
+    print(f'Stable Index: {stable_index}')
+    return stable_index
+
+
+def train_nth_model(criterion, X_train, y_train, X_test, y_test):
+    rfc = RandomForestClassifier(random_state=101,criterion=criterion)
+    stable_idx = plot_errors_for_n_estimators(X_train, y_train, X_test, y_test)
+
+    grid_params = {
+        'n_estimators': list(range(stable_idx,501, 50)),
+        'max_depth'   : [4,5],
+        'bootstrap'   : [True]
+    }
+
+    grid = GridSearchCV(rfc ,param_grid=grid_params, verbose=3)
+    grid.fit(X_train,y_train)
+
+    print(grid.best_params_)
+
+    best_max_depth = grid.best_params_.get('max_depth')
+    best_use_bootstrap = grid.best_params_.get('bootstrap')
+    best_n_setimators = grid.best_params_.get('n_estimators')
+
+    rfc = RandomForestClassifier(n_estimators=best_n_setimators, 
+                                max_depth=best_max_depth,
+                                bootstrap=best_use_bootstrap,
+                                random_state=101)
+
+
+    rfc.fit(X_train,y_train)
+
+    preds = rfc.predict(X_test)
+
+    print(classification_report(y_test,preds))
+    acc = accuracy_score(y_test, preds)
+    return {
+        'model': rfc,
+        'accuracy': acc
+    }
 
 def train_model():
 
@@ -46,41 +90,40 @@ def train_model():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
 
-    # To avoid recreating completely random X-Y splits when testing against different models 
-    # it's important to assign a random state so the comparison is fair  
+    models_list = []
+    accs_list = []
 
-    rfc = RandomForestClassifier(random_state=101,criterion='entropy')
+    for criterion in ['gini', 'entropy', 'log_loss']:
+        print (f"\n✍️ ========= {criterion.upper()} =========\n")
+        res1 = train_nth_model(criterion, X_train, y_train, X_test, y_test)
+        models_list.append(res1.get('model'))
+        accs_list.append(res1.get('accuracy'))
 
-    # Do a grid search for our params. Because the machine could handle everything I did the search for all estimators from 10 to 120 n_estimators
-    grid_params = {
-        'n_estimators': list(range(100,501, 50)),
-        'max_depth'   : [4,5],
-        'bootstrap'   : [True]
-    }
+    max_acc = max(accs_list)
+    best_models = []
+    for i in range(1, len(models_list)):
+        if accs_list[i] == max_acc:
+            best_models.append(i)
+    
+    rfc = models_list[best_models[0]]
+    
+    print ("\n✍️ ========= Results =========\n")
 
-    grid = GridSearchCV(rfc ,param_grid=grid_params, verbose=3)
-    grid.fit(X_train,y_train)
-
-    print(grid.best_params_)
-
-    best_max_depth = grid.best_params_.get('max_depth')
-    best_use_bootstrap = grid.best_params_.get('bootstrap')
-    best_n_setimators = grid.best_params_.get('n_estimators')
-    # plot_errors_for_n_estimators(best_max_depth, best_use_bootstrap)
-
-    rfc = RandomForestClassifier(n_estimators=best_n_setimators, 
-                                max_depth=best_max_depth,
-                                bootstrap=best_use_bootstrap,
-                                random_state=101)
+    if len(best_models) > 1:
+        msg = 'Tie between:   '
+        for idx in best_models:
+            msg += f'rfc{idx+1} '
+        
+        print(msg)
+        print('Accuracy:'.ljust(15) + str(max_acc))
+        print(f'Picking rfc{best_models[0]+1} to continue')
+    else:
+        print(f"Best model: ".ljust(15) + f'{best_models[0]+1}')
+        print('Accuracy:'.ljust(15) + str(max_acc))
+    
 
 
-    rfc.fit(X_train,y_train)
 
-    preds = rfc.predict(X_test)
-
-    cm = confusion_matrix(y_test, preds, labels=rfc.classes_)
-
-    print(classification_report(y_test,preds))
 
     return {
             'model': rfc,

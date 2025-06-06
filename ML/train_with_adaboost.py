@@ -3,6 +3,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import setup
@@ -17,10 +18,10 @@ def plot_errors_for_n_estimators(base_learner, X_train, y_train, X_test, y_test)
     stable_index = -1
 
 
-    for n in range(50,500, 50):
-        rfc = AdaBoostClassifier(estimator=base_learner, n_estimators=n, random_state=101)
-        rfc.fit(X_train, y_train)
-        preds = rfc.predict(X_test)
+    for n in range(50, 500, 50):
+        adb = AdaBoostClassifier(estimator=base_learner, n_estimators=n, random_state=101)
+        adb.fit(X_train, y_train)
+        preds = adb.predict(X_test)
         err =  1 - accuracy_score(y_test,preds)
         n_missed = np.sum( preds != y_test)
         
@@ -34,9 +35,8 @@ def plot_errors_for_n_estimators(base_learner, X_train, y_train, X_test, y_test)
         
         prev_err = err
 
-    # print(f'Min missclassifications {min(errors)} at index {missclassifications.index(min(errors))}')
-    # plt.plot(range(50,500),errors)
-    # plt.show()
+    plt.plot(range(50,500,50),errors)
+    plt.savefig('../Dataset/Observations/pairplot_of_dataset.png')
     print(f'Stable Index: {stable_index}')
     return stable_index
 
@@ -75,7 +75,9 @@ def train_model():
 
     print(grid.best_params_)
 
-    ada_boost_model = AdaBoostClassifier(estimator=base_learner, n_estimators=grid.best_params_.get('n_estimators'), random_state=101)
+    ada_boost_model = AdaBoostClassifier(estimator=base_learner, 
+                                         n_estimators=grid.best_params_.get('n_estimators'), 
+                                         random_state=101)
     ada_boost_model.fit(X_train,y_train)
     preds = ada_boost_model.predict(X_test)
     print(classification_report(y_test,preds))

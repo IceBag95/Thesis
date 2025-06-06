@@ -70,7 +70,7 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns } ) {
                             value={currAns.current_answer || ""}
                             onChange={handleNumberChange} />
                 ) : (
-                    <p>Trying to load answers</p>
+                    <p>Fetching Q&A</p>
                 )
             }
         </div>
