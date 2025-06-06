@@ -22,10 +22,12 @@ def make_heart_attack_prediction(request):
 
     if request.method == 'POST':
 
-        ml_model = MlModelConfig.get_model()
-        columns = MlModelConfig.get_columns()
+        ml_model  = MlModelConfig.get_model()
+        ml_scaler = MlModelConfig.get_scaler()
+        columns   = MlModelConfig.get_columns()
 
         print(f'ML MODEL: {ml_model}')
+        print(f'ML MODEL: {ml_scaler}')
         print(f'COLUMNS: {columns}')
 
 
@@ -79,8 +81,16 @@ def make_heart_attack_prediction(request):
             print(f"User_data_for_model: {user_data_for_model}")
             try:
                 df = pd.DataFrame([user_data_for_model])
+                print(df.head())
+                if ml_scaler is not None:
+                    print('Performing scaling.')
+                    df = pd.DataFrame(ml_scaler.transform(df), columns=df.columns)
+                    print('Scaling performed.')
+                    print(df.head())
+                else:
+                    print('No need to scale.')
                 prediction = ml_model.predict(df)
-                print(type(prediction))
+                print(prediction)
                 response_data = {'target': prediction.tolist()[0]}
                 print(response_data)
             except Exception as e:

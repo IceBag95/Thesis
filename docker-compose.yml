@@ -1,0 +1,17 @@
+version: '3.9'
+
+services:
+  backend:
+    container_name: thesis
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        HOST_USER: ${USER}           # Pass the host username as build arg
+    image: thesis
+    working_dir: /home/${USER}/app/Back-end   # match Dockerfile user home
+    volumes:
+      -  ./Back-end:/home/${USER}/app/Back-end                # mount Thesis folder to user home
+    ports:
+      - "8000:8000"
+

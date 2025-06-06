@@ -15,6 +15,7 @@ export default function BaseContainer() {
   const [skipped, setSkipped] = React.useState(new Set());
   const [userAnswers, setUserAnwers] = React.useState({ "usr_ans_list": []});
   const [currentAns, setCurrentAns] = React.useState({});
+  const hasResults = React.useRef(false);
 
 
   const isStepSkipped = (step) => {
@@ -68,6 +69,7 @@ export default function BaseContainer() {
     setUserAnwers({ "usr_ans_list": []});
     setCurrentAns({});
     setResult({});
+    hasResults.current = false
   };
 
   React.useEffect(() => {
@@ -91,8 +93,11 @@ export default function BaseContainer() {
           } catch (error) {
             console.error("Error fetching data:", error);
           }
+
+          hasResults.current = true;
+
         }
-      };
+      }
     
       fetchData();
   }, [activeStep])
@@ -115,25 +120,35 @@ export default function BaseContainer() {
       </Stepper>
       {steps.length > 0 && activeStep === steps.length ? (
         <React.Fragment>
-          <Typography sx={{ mt: 2, mb: 1 }}>
+          { hasResults ? 
+            <Typography sx={{ mt: 2, mb: 1 }}>
+              {
+                <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+                  <p>Η διαδικασία ολοκληρώθηκε με αποτέλεσμα:</p>
+                  {
+                    result.target ? 
+                      <h1 style={{color: 'red'}}> Υψηλή Πιθανότητα</h1>
+                    : 
+                      <h1 style={{color: 'green'}}> Χαμηλή Πιθανότητα</h1>
+                  }
+                  {
+                    result.target ? 
+                      <h3>Σύμφωνα με τα δεδομένα που εισήχθησαν ανιχνεύθηκε υψηλή πιθανότητα καρδιακής προσβολής</h3>
+                    : 
+                      <h3>Σύμφωνα με τα δεδομένα που εισήχθησαν προκύπτει χαμηλή πιθανότητα καρδιακής προσβολής</h3>
+                  }
+                </div>
+              }
+            </Typography>
+           : 
+           <Typography sx={{ mt: 2, mb: 1 }}> 
             {
               <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-                <p>Η διαδικασία ολοκληρώθηκε με αποτέλεσμα:</p>
-                {
-                  result.target ? 
-                    <h1 style={{color: 'red'}}> Υψηλή Πιθανότητα</h1>
-                  : 
-                    <h1 style={{color: 'green'}}> Χαμηλή Πιθανότητα</h1>
-                }
-                {
-                  result.target ? 
-                    <h3>Σύμφωνα με τα δεδομένα που εισήχθησαν ανιχνεύθηκε υψηλή πιθανότητα καρδιακής προσβολής</h3>
-                  : 
-                    <h3>Σύμφωνα με τα δεδομένα που εισήχθησαν προκύπτει χαμηλή πιθανότητα καρδιακής προσβολής</h3>
-                }
-              </div>
-            }
+                <p>Περιμένετε να υπλογιστούν τα αποτελέσματα...</p>
+              </div> 
+              }
           </Typography>
+          }
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
             <Box sx={{ flex: '1 1 auto' }} />
             <Button onClick={handleReset}>Νέα Πρόβλεψη</Button>

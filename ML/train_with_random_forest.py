@@ -82,7 +82,10 @@ def train_model():
 
     print(classification_report(y_test,preds))
 
-    return rfc
+    return {
+            'model': rfc,
+            'scaler': None
+        }
 
     # joblib.dump(rfc, '../Back-end/ml_model/RandomForestModel.pkl')
 

@@ -1,0 +1,46 @@
+
+
+======= LogisticRegressionCV with penalty: l1 =======
+              precision    recall  f1-score   support
+
+       False       0.66      0.75      0.71       158
+        True       0.77      0.69      0.73       192
+
+    accuracy                           0.72       350
+   macro avg       0.72      0.72      0.72       350
+weighted avg       0.72      0.72      0.72       350
+
+
+
+======= LogisticRegressionCV with penalty: l2 =======
+              precision    recall  f1-score   support
+
+       False       0.68      0.76      0.72       158
+        True       0.78      0.70      0.74       192
+
+    accuracy                           0.73       350
+   macro avg       0.73      0.73      0.73       350
+weighted avg       0.73      0.73      0.73       350
+
+
+
+======= LogisticRegressionCV with penalty: elasticnet =======
+              precision    recall  f1-score   support
+
+       False       0.67      0.74      0.70       158
+        True       0.77      0.70      0.73       192
+
+    accuracy                           0.72       350
+   macro avg       0.72      0.72      0.72       350
+weighted avg       0.72      0.72      0.72       350
+
+
+
+	======= Best Accuracy =======
+All model Accuracies:   [0.7171428571428572, 0.7285714285714285, 0.72]
+Best Accuracy:          0.7285714285714285
+Achieved by Models:     lr2
+
+
+	======= Selected Best Model =======
+Selected best model: lr2

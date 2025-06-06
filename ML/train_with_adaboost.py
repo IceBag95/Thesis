@@ -1,8 +1,6 @@
 # import joblib
-from sklearn.ensemble import AdaBoostClassifier, StackingClassifier
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
-import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import GridSearchCV, train_test_split
@@ -69,7 +67,7 @@ def train_model():
 
     # Grid Search for best params after the stabilazation point of the plot
     grid_params = {
-        'n_estimators': list(range(current_least_error_index,501,10))
+        'n_estimators': list(range(current_least_error_index,501))
     }
 
     grid = GridSearchCV(ada_boost ,param_grid=grid_params, verbose=3)
@@ -82,4 +80,14 @@ def train_model():
     preds = ada_boost_model.predict(X_test)
     print(classification_report(y_test,preds))
 
-    return ada_boost_model
+    print('\n\n✍️ ======= Accuracy Achieved =======\n')
+    print(f'Accuracy achieved: {accuracy_score(y_test, preds)}\n')
+
+    return {
+            'model': ada_boost_model,
+            'scaler': None
+        }
+
+
+if __name__ == '__main__':
+    train_model()

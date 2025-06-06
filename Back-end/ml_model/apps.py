@@ -9,6 +9,7 @@ class MlModelConfig(AppConfig):
     name = 'ml_model'
     model = None
     model_columns = None
+    scaler = None
 
     @classmethod
     def ready(cls):
@@ -18,11 +19,12 @@ class MlModelConfig(AppConfig):
         sys.path.append(ml_folder_path)
         
         print("Import path....")
-        from train_with_random_forest import train_model
+        from train_logistic_regression_model import train_model
 
         print("Train model....")
-        cls.model = train_model()
-
+        results = train_model()
+        cls.model = results.get('model')
+        cls.scaler = results.get('scaler')
         print('Getting the model columns....')
         model_columns_file = open(Path.cwd() / "Assets" / "columns.json", 'r')
         model_columns_content = json.load(model_columns_file)
@@ -39,3 +41,7 @@ class MlModelConfig(AppConfig):
     @classmethod
     def get_columns(cls):
         return cls.model_columns
+    
+    @classmethod
+    def get_scaler(cls):
+        return cls.scaler
