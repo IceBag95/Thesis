@@ -19,7 +19,7 @@ class MlModelConfig(AppConfig):
         sys.path.append(ml_folder_path)
         
         print("Import path....")
-        from train_with_random_forest import train_model
+        from train_logistic_regression_model import train_model
 
         print("Train model....")
         results = train_model()
