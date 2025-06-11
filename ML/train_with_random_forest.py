@@ -5,7 +5,7 @@ import seaborn as sns
 from scipy import stats
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import confusion_matrix,classification_report,ConfusionMatrixDisplay, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score
 import setup
 
 # In case we need it
@@ -35,7 +35,7 @@ def plot_errors_for_n_estimators(X_train, y_train, X_test, y_test):
         prev_err = err
 
     plt.plot(range(100,500,50),errors)
-    plt.savefig('../Dataset/Observations/pairplot_of_dataset.png')
+    plt.savefig('../Dataset/Observations/plot_of_errors_random_forest.png')
     print(f'Stable Index: {stable_index}')
     return stable_index
 
@@ -122,15 +122,11 @@ def train_model():
         print('Accuracy:'.ljust(15) + str(max_acc))
     
 
-
-
-
     return {
             'model': rfc,
             'scaler': None
         }
 
-    # joblib.dump(rfc, '../Back-end/ml_model/RandomForestModel.pkl')
 
 if __name__ == '__main__':
     train_model()

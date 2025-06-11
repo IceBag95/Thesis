@@ -13,7 +13,7 @@ import json
 def heart_attack_prediction(request):
 
     index_file = Path(settings.FRONT_END_DIR).resolve() / 'build' / 'index.html'
-    print(f'Batman - index_file path: {index_file}')
+    print(f'heart_attack_prediction - index_file path: {index_file}')
     
     return FileResponse(open(index_file, 'rb'), content_type='text/html')
 
@@ -97,13 +97,13 @@ def make_heart_attack_prediction(request):
                 print(f'Something went wrong. Could be format. Is this the format you need for the data:\n{user_data_for_model}')
             
             # Send a JSON response back to the frontend
-            return JsonResponse(response_data)
+            return JsonResponse(response_data, status=200)
         except json.JSONDecodeError as e:
             return JsonResponse({'status': 'error', 'message': f'Invalid JSON data {e.__str__}'}, status=400)
 
     return JsonResponse({
         "error": "no data",
-    })
+    },status=404)
 
 def send_initial_info(request):
 

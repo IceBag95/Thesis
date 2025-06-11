@@ -36,7 +36,7 @@ def plot_errors_for_n_estimators(base_learner, X_train, y_train, X_test, y_test)
         prev_err = err
 
     plt.plot(range(50,500,50),errors)
-    plt.savefig('../Dataset/Observations/pairplot_of_dataset.png')
+    plt.savefig('../Dataset/Observations/plot_of_errors_adaboost.png')
     print(f'Stable Index: {stable_index}')
     return stable_index
 
