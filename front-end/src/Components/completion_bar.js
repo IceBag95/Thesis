@@ -137,7 +137,7 @@ export default function BaseContainer() {
           }
           <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2 }}>
             <Box sx={{ flex: '1 1 auto' }} />
-            <Button onClick={handleReset}>Νέα Πρόβλεψη</Button>
+            <Button onClick={handleReset}>Νεα Προβλεψη</Button>
           </Box>
         </React.Fragment>
       ) : (
@@ -152,11 +152,11 @@ export default function BaseContainer() {
               onClick={handleBack}
               sx={{ margin: "0px 20px" }}
             >
-              Back
+              Πισω
             </Button>
             <Box sx={{ display: 'flex' }} />
                 <Button onClick={handleNext} sx={{ margin: "0px 20px" }} disabled={!currentAns.current_answer}>
-                {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+                {activeStep === steps.length - 1 ? 'Αποστολη απαντησεων' : 'Επομενο'}
                 </Button>
           </Box>
         </React.Fragment>
