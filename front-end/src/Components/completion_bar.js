@@ -12,26 +12,13 @@ export default function BaseContainer() {
   const [steps, setSteps] = React.useState([]);
   const [result, setResult] = React.useState({});
   const [activeStep, setActiveStep] = React.useState(0);
-  const [skipped, setSkipped] = React.useState(new Set());
   const [userAnswers, setUserAnwers] = React.useState({ "usr_ans_list": []});
   const [currentAns, setCurrentAns] = React.useState({});
   const [hasResults, setHasResults] = React.useState(false);
 
 
-  const isStepSkipped = (step) => {
-    return skipped.has(step);
-  };
-
   const handleNext = () => {
-    let newSkipped = skipped;
     let currentStep = activeStep;
-    if (isStepSkipped(activeStep)) {
-      newSkipped = new Set(newSkipped.values());
-      newSkipped.delete(activeStep);
-    }
-
-    setActiveStep((prevActiveStep) => prevActiveStep + 1);
-    setSkipped(newSkipped);
 
     let myAnswer = userAnswers.usr_ans_list.find((ans) => ans.for_column == currentAns.for_column);
     let ansPos = userAnswers.usr_ans_list.indexOf(myAnswer)
@@ -49,12 +36,14 @@ export default function BaseContainer() {
     
     // Handle current ans that needs to be loaded for the user, either empty if 
     // next activeStep is not in the Array yet, or the respective answer if it is.
-    if (activeStep + 1 >= userAnswers.usr_ans_list.length) {
+    if (currentStep + 1 >= userAnswers.usr_ans_list.length) {
       setCurrentAns({});
     }
     else {
       setCurrentAns(userAnswers.usr_ans_list[currentStep + 1]);
     }
+
+    setActiveStep((prevActiveStep) => prevActiveStep + 1);
 
   };
 
@@ -105,12 +94,9 @@ export default function BaseContainer() {
   return (
     <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
       <Stepper activeStep={activeStep} sx={{width: '50%'}}>
-        {steps.length > 0 ? steps.map((label, index) => {
+        {steps.length > 0 ? steps.map((label) => {
           const stepProps = {};
           const labelProps = {};
-          if (isStepSkipped(index)) {
-            stepProps.completed = false;
-          }
           return (
             <Step key={label} {...stepProps}>
               <StepLabel {...labelProps}></StepLabel>
