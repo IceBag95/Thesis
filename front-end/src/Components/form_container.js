@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Question from "./question";
 import Answers from "./answers";
 import '../Component-Styles/form_container.css'
