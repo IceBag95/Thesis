@@ -1,4 +1,5 @@
 # import joblib
+from pathlib import Path
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 import pandas as pd
@@ -44,6 +45,11 @@ def train_model():
 
     print('Entered adaboost training')
 
+    logs = Path.cwd().parent / "Dataset" / "Observations" / "Adaboost Metrics.txt"
+    logs.touch()
+    
+    logfile = logs.open(mode='w')
+
     setup.setup_dataset()
 
     df = pd.read_csv("../Dataset/clean_data.csv")
@@ -80,10 +86,12 @@ def train_model():
                                          random_state=101)
     ada_boost_model.fit(X_train,y_train)
     preds = ada_boost_model.predict(X_test)
+    print('\n\n✍️ ======= AdaBoost model =======\n')
+    logfile.write('\n\n✍️ ======= AdaBoost model =======\n\n')
     print(classification_report(y_test,preds))
-
-    print('\n\n✍️ ======= Accuracy Achieved =======\n')
+    logfile.write('\n' + classification_report(y_test,preds) + '\n\n')
     print(f'Accuracy achieved: {accuracy_score(y_test, preds)}\n')
+    logfile.write(f'Accuracy achieved: {accuracy_score(y_test, preds)}\n')
 
     return {
             'model': ada_boost_model,
