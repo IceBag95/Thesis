@@ -1,3 +1,4 @@
+from pathlib import Path
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -27,7 +28,7 @@ def plot_errors_for_n_estimators(X_train, y_train, X_test, y_test):
         errors.append(err)
         missclassifications.append(n_missed)
 
-        print(f'Index:{n}\nError:{err}\nPrevious Error:{prev_err}\nError diff:{abs(prev_err - err)}\nIs Prev erro diff that current {prev_err != err}')
+        print(f'Index:{n}\nError:{err}\nPrevious Error:{prev_err}\nError diff:{abs(prev_err - err)}\nIs Prev error diff that current {prev_err != err}')
 
         if abs(prev_err - err) < 0.1 and prev_err != err:
             stable_index = n
@@ -41,6 +42,9 @@ def plot_errors_for_n_estimators(X_train, y_train, X_test, y_test):
 
 
 def train_nth_model(criterion, X_train, y_train, X_test, y_test):
+    logs = Path.cwd().parent / "Dataset" / "Observations" / "Random Forest Metrics.txt"
+    logfile = logs.open(mode='a')
+    logfile.write(f"\n✍️ ========= {criterion.upper()} =========\n\n")
     rfc = RandomForestClassifier(random_state=101,criterion=criterion)
     stable_idx = plot_errors_for_n_estimators(X_train, y_train, X_test, y_test)
 
@@ -71,6 +75,9 @@ def train_nth_model(criterion, X_train, y_train, X_test, y_test):
 
     print(classification_report(y_test,preds))
     acc = accuracy_score(y_test, preds)
+    logfile.write(classification_report(y_test,preds))
+    logfile.write(f'\nAccuracy: {acc}\n\n')
+    logfile.close()
     return {
         'model': rfc,
         'accuracy': acc
@@ -79,6 +86,12 @@ def train_nth_model(criterion, X_train, y_train, X_test, y_test):
 def train_model():
 
     print('Entered random forest training')
+
+    logs = Path.cwd().parent / "Dataset" / "Observations" / "Random Forest Metrics.txt"
+    if (logs.exists()):
+        logs.unlink()
+
+    logs.touch()
 
     setup.setup_dataset()
 
@@ -101,13 +114,16 @@ def train_model():
 
     max_acc = max(accs_list)
     best_models = []
-    for i in range(1, len(models_list)):
+    for i in range(len(models_list)):
         if accs_list[i] == max_acc:
             best_models.append(i)
     
     rfc = models_list[best_models[0]]
+
+    logfile = logs.open(mode='a')
     
-    print ("\n✍️ ========= Results =========\n")
+    print("\n✍️ ========= Results =========\n")
+    logfile.write("\n✍️ ========= Results =========\n\n")
 
     if len(best_models) > 1:
         msg = 'Tie between:   '
@@ -115,11 +131,16 @@ def train_model():
             msg += f'rfc{idx+1} '
         
         print(msg)
+        logfile.write(f'\n{msg}\n')
         print('Accuracy:'.ljust(15) + str(max_acc))
+        logfile.write('\nAccuracy:'.ljust(15) + str(max_acc) + '\n')
         print(f'Picking rfc{best_models[0]+1} to continue')
+        logfile.write(f'Picking rfc{best_models[0]+1} to continue\n\n')
     else:
         print(f"Best model: ".ljust(15) + f'{best_models[0]+1}')
+        logfile.write(f"Best model: ".ljust(15) + f'{best_models[0]+1}\n')
         print('Accuracy:'.ljust(15) + str(max_acc))
+        logfile.write('Accuracy:'.ljust(15) + str(max_acc) + '\n\n')
     
 
     return {

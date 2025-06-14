@@ -55,6 +55,4 @@ RUN echo "alias runapp='python manage.py migrate && python manage.py runserver 0
 USER $HOST_USER
 WORKDIR $APP_HOME/Back-end
 
-# Start Django server
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 
