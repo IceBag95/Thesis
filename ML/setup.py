@@ -29,6 +29,14 @@ def setup_dataset():
     dummy_df.columns = ['Male', 'Female']
     df = df.drop('sex', axis=1)
     df = pd.concat([df[['age']], dummy_df[['Male']], df.drop(['age'], axis=1)], axis=1)
+    print('\n👀Trues and Falses in column Target:')
+    df2 = df['target'].value_counts()
+    print(df2)
+    df_len = len(df)
+    if 30 <= df2[True]/df_len*100 <= 70 and 30 <= df2[False]/df_len*100 <= 70:
+        print('\nTarget values seem  balanced, no need to oversample')
+    else:
+        print("\n‼️ Proceeding with IMBALANCED Target values! Results may be better if oversampling techniques are applied")
     print('\n✅ Clean dataset READY\n\n>> Please check the format of the entries (first 5 as example)')
     print(df.head())
     print(f'>> Clean dataset length: {len(df)} enties\n')
