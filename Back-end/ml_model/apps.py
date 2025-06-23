@@ -27,7 +27,7 @@ class MlModelConfig(AppConfig):
         cls.scaler = results.get('scaler')
         print('Getting the model columns....')
         model_columns_file = open(Path.cwd() / "Assets" / "columns.json", 'r')
-        model_columns_content = json.load(model_columns_file)
+        model_columns_content:dict = json.load(model_columns_file)
         print(model_columns_content)
         cls.model_columns = model_columns_content.get('dataset_columns')
         model_columns_file.close()
@@ -39,7 +39,7 @@ class MlModelConfig(AppConfig):
         return cls.model
     
     @classmethod
-    def get_columns(cls):
+    def get_columns(cls) -> list:
         return cls.model_columns
     
     @classmethod

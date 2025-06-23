@@ -1,16 +1,15 @@
-from django.http import FileResponse
+from typing import Any, Dict, List
+from django.http import FileResponse, HttpRequest
 from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from pathlib import Path
-
-import numpy as np
 import pandas as pd
 from ml_model.apps import MlModelConfig
 import json
 
 
-def heart_attack_prediction(request):
+def heart_attack_prediction(request: HttpRequest) -> FileResponse:
 
     index_file = Path(settings.FRONT_END_DIR).resolve() / 'build' / 'index.html'
     print(f'heart_attack_prediction - index_file path: {index_file}')
@@ -18,7 +17,7 @@ def heart_attack_prediction(request):
     return FileResponse(open(index_file, 'rb'), content_type='text/html')
 
 @csrf_exempt
-def make_heart_attack_prediction(request):
+def make_heart_attack_prediction(request: HttpRequest) -> JsonResponse:
 
     if request.method == 'POST':
 
@@ -32,9 +31,9 @@ def make_heart_attack_prediction(request):
 
 
         try:
-            data = json.loads(request.body)
+            data:Dict[str, Any] = json.loads(request.body)
           
-            user_data_list = data.get('usr_ans_list')
+            user_data_list:List[Dict[str, Any]] = data.get('usr_ans_list')
             if user_data_list is None:
                 raise json.JSONDecodeError("Missing 'usr_ans_list' key. No answers received from user.", "", 0)
             
@@ -105,7 +104,7 @@ def make_heart_attack_prediction(request):
         "error": "no data",
     },status=404)
 
-def send_initial_info(request):
+def send_initial_info(request: HttpRequest) -> JsonResponse:
 
     initial_data_path = Path(settings.BASE_DIR).resolve() / 'Assets' / 'Initial_data_for_predict.json'
     print(f'Initial_data path: {initial_data_path}')

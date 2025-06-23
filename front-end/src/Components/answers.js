@@ -1,8 +1,9 @@
-import React, { useRef } from "react";
+import { useRef, useState } from "react";
 
 function Answers( { for_column, answers, currQuest, currAns, setCurrAns } ) {
 
     const selectedValue = useRef();
+    const [invalidAnswer, setInvalidAnswer] = useState(false); 
     if (Array.isArray(answers) && answers.length > 0 && Object.keys(currAns).length === 0 ) {
         let newSelectedValue = answers[0].actual_value;
         selectedValue.current = newSelectedValue;
@@ -35,11 +36,17 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns } ) {
     }
 
     const handleNumberChange = (event) => {
-        setCurrAns({
-            for_column: for_column,
-            current_question: currQuest,
-            current_answer: event.target.value
-        });
+        if (event.target.value >= 0){
+            setInvalidAnswer(false);
+            setCurrAns({
+                for_column: for_column,
+                current_question: currQuest,
+                current_answer: event.target.value
+            });
+        }
+        else {
+            setInvalidAnswer(true);
+        }
     }
 
     return(
@@ -65,10 +72,26 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns } ) {
                                 )
                     })
                 ) : Array.isArray(answers) && answers.length == 0 ? (
-                    <input  type="number" 
-                            class="number-input"
-                            value={currAns.current_answer || ""}
-                            onChange={handleNumberChange} />
+                    <>
+                        <input  type="number" 
+                                class="number-input"
+                                value={currAns.current_answer || ""}
+                                onChange={handleNumberChange}
+                                style={invalidAnswer ? {backgroundColor: "rgb(245, 134, 132)", 
+                                                        border: 'solid',
+                                                        borderColor: "red", 
+                                                        borderWidth: "2px",
+                                                        borderRadius: "4px"} 
+                                                    : {backgroundColor: "white", 
+                                                        border: 'solid',
+                                                        borderColor: "gray", 
+                                                        borderWidth: "2px",
+                                                        borderRadius: "4px"}} />
+                        
+                        {invalidAnswer ? 
+                            <p style={{color: "red", fontSize: "0.7em"}}>Εισάγετε μόνο μη αρνητικές τιμές</p>
+                        :   ""} 
+                    </>
                 ) : (
                     <p>Fetching Q&A</p>
                 )

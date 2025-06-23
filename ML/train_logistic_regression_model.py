@@ -1,3 +1,4 @@
+from typing import Dict, Optional, Union
 import numpy as np
 from scipy import stats
 from sklearn.discriminant_analysis import StandardScaler
@@ -10,7 +11,7 @@ import setup
 
 
 
-def train_model():
+def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScaler]]]:
 
     print('Entered LogisticRegressionCV training')
 
@@ -53,7 +54,7 @@ def train_model():
     X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
     X_test = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)
 
-    lr1 = LogisticRegressionCV(Cs=50, solver='saga', penalty='l1', max_iter=1000, random_state=101, verbose=3)
+    lr1 = LogisticRegressionCV(cv=10, Cs=50, solver='saga', penalty='l1', max_iter=1000, random_state=101, verbose=3)
     lr1.fit(X_train, y_train)
     preds = lr1.predict(X_test)
     models_metrics.get('model').append(lr1)
@@ -65,7 +66,7 @@ def train_model():
     logs.write(classification_report(y_test,preds))
     logs.write('\n')
 
-    lr2 = LogisticRegressionCV(Cs=50, solver='saga', penalty='l2', max_iter=1000, random_state=101, verbose=3)
+    lr2 = LogisticRegressionCV(cv=10, Cs=50, solver='saga', penalty='l2', max_iter=1000, random_state=101, verbose=3)
     lr2.fit(X_train, y_train)
     preds = lr2.predict(X_test)
     models_metrics.get('model').append(lr2)
@@ -77,7 +78,8 @@ def train_model():
     logs.write(classification_report(y_test,preds))
     logs.write('\n')
 
-    lr3 = LogisticRegressionCV(Cs=100, 
+    lr3 = LogisticRegressionCV(cv=10,
+                               Cs=100, 
                                solver='saga', 
                                penalty='elasticnet', 
                                max_iter=1000, 

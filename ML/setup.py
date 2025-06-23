@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from  pathlib import Path
 
-def setup_dataset():
+def setup_dataset() -> None:
     print('\n\n⏳ Loading the original dataset...')
     df = pd.read_csv("../Dataset/raw_data.csv")
     print('\n✅ Load SUCCESS\n')
@@ -31,7 +31,9 @@ def setup_dataset():
     df = pd.concat([df[['age']], dummy_df[['Male']], df.drop(['age'], axis=1)], axis=1)
     print('\n👀Trues and Falses in column Target:')
     df2 = df['target'].value_counts()
-    print(df2)
+    df2_normaliazed = df['target'].value_counts(normalize=True)
+    print(f'True: {df2[True]} -> {df2_normaliazed[True]:.2f}%')
+    print(f'False: {df2[False]} -> {df2_normaliazed[False]:.2f}%')
     df_len = len(df)
     if 30 <= df2[True]/df_len*100 <= 70 and 30 <= df2[False]/df_len*100 <= 70:
         print('\nTarget values seem  balanced, no need to oversample')
@@ -67,6 +69,7 @@ def setup_dataset():
     plt.figure(figsize=(10, 8))
     sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f")
     plt.savefig('../Dataset/Observations/heatmap_of_dataset.png')
+    plt.close()
 
     # from the plot it seems that there is not much linear correlation so linear regression 
     # is not an option. Also the correlation table never exeeds 0.4 for any value when correlated
@@ -77,6 +80,7 @@ def setup_dataset():
     sns.pairplot(df, hue='target')
     plt.savefig('../Dataset/Observations/pairplot_of_dataset.png')
     print('\n✅ Images CREATED\n')
+    plt.close()
 
 if __name__ == '__main__':
     setup_dataset()

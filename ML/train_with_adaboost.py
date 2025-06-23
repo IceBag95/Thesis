@@ -1,47 +1,70 @@
 # import joblib
 from pathlib import Path
+from typing import Dict, List, Optional, Union
+from sklearn.discriminant_analysis import StandardScaler
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV, train_test_split
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
+from sklearn.model_selection import StratifiedKFold
 import setup
 
 
 
-def plot_errors_for_n_estimators(base_learner, X_train, y_train, X_test, y_test):
-    errors = []
-    missclassifications = []
+def plot_errors_for_n_estimators(base_learner: DecisionTreeClassifier, 
+                                 X_train: pd.DataFrame,
+                                 y_train: pd.DataFrame) -> int:
+    
+    skf = StratifiedKFold(n_splits=5)
+    best_estimators = []
+    total_errors:List[List[float]] = []
 
-    prev_err = float('inf')
-    stable_index = -1
+    for fold_idx, (train_idx, val_idx) in enumerate(skf.split(X_train, y_train), 1):
+        X_tr, X_val = X_train.iloc[train_idx], X_train.iloc[val_idx]
+        y_tr, y_val = y_train.iloc[train_idx], y_train.iloc[val_idx]
 
+        errors = []
+        prev_err = float('inf')
+        stable_n = 50
+        got_stable_idx = False
 
-    for n in range(50, 500, 50):
-        adb = AdaBoostClassifier(estimator=base_learner, n_estimators=n, random_state=101)
-        adb.fit(X_train, y_train)
-        preds = adb.predict(X_test)
-        err =  1 - accuracy_score(y_test,preds)
-        n_missed = np.sum( preds != y_test)
-        
-        errors.append(err)
-        missclassifications.append(n_missed)
+        for n in range(50, 501, 50):
+            model = AdaBoostClassifier(estimator=base_learner, n_estimators=n, random_state=101)
+            model.fit(X_tr, y_tr)
+            preds = model.predict(X_val)
+            err = 1 - accuracy_score(y_val, preds)
+            errors.append(err)
 
-        print(f'Index:{n}\nError:{err}\nPrevious Error:{prev_err}\nError diff:{abs(prev_err - err)}\nIs Prev erro diff that current {prev_err != err}')
+            if abs(prev_err - err) < 0.01 and not got_stable_idx:
+                stable_n = n
+                got_stable_idx = True
+            prev_err = err
 
-        if abs(prev_err - err) < 0.1 and prev_err != err:
-            stable_index = n
-        
-        prev_err = err
+        best_estimators.append(stable_n)
+        total_errors.append(errors)
 
-    plt.plot(range(50,500,50),errors)
-    plt.savefig('../Dataset/Observations/plot_of_errors_adaboost.png')
+    stable_index = int(np.median(best_estimators))
+
+    # Plot all folds errors on the same graph
+    for fold_idx, errors in enumerate(total_errors, 1):
+        plt.plot(range(50, 501, 50), errors, label=f'Fold {fold_idx}')
+
+    plt.xlabel('Number of Estimators')
+    plt.ylabel('Validation Error')
+    plt.title('AdaBoost Validation Error per Fold')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('../Dataset/Observations/plot_of_errors_adaboost_all_folds.png')
+    plt.close()
+
     print(f'Stable Index: {stable_index}')
     return stable_index
 
-def train_model():
+
+def train_model() -> Dict[str, Union[AdaBoostClassifier, Optional[StandardScaler]]]:
 
     print('Entered adaboost training')
 
@@ -65,7 +88,7 @@ def train_model():
 
     ada_boost = AdaBoostClassifier(estimator=base_learner, random_state=101)
 
-    current_least_error_index = plot_errors_for_n_estimators(base_learner, X_train, y_train, X_test, y_test) # should be > 50
+    current_least_error_index = plot_errors_for_n_estimators(base_learner, X_train, y_train) # should be > 50
 
     if current_least_error_index == -1: 
         current_least_error_index = 100 # I will assign as default the 100 n_estimators
@@ -92,6 +115,8 @@ def train_model():
     logfile.write('\n' + classification_report(y_test,preds) + '\n\n')
     print(f'Accuracy achieved: {accuracy_score(y_test, preds)}\n')
     logfile.write(f'Accuracy achieved: {accuracy_score(y_test, preds)}\n')
+    print(f'ROC-AUC: {roc_auc_score(y_test, preds)}\n')
+    logfile.write(f'ROC-AUC: {roc_auc_score(y_test, preds)}\n')
 
     return {
             'model': ada_boost_model,
