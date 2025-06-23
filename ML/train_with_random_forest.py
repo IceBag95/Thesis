@@ -27,7 +27,7 @@ def plot_errors_for_n_estimators(X_train: pd.DataFrame, y_train: pd.DataFrame, c
         got_stable_idx = False
 
         for n in range(100, 501, 50):
-            rfc = RandomForestClassifier(n_estimators=n, random_state=101, criterion=criterion)
+            rfc = RandomForestClassifier(n_estimators=n, random_state=101, criterion=criterion, class_weight='balanced')
             rfc.fit(X_tr, y_tr)
             preds = rfc.predict(X_val)
             err = 1 - accuracy_score(y_val, preds)
@@ -49,7 +49,7 @@ def plot_errors_for_n_estimators(X_train: pd.DataFrame, y_train: pd.DataFrame, c
 
     plt.xlabel('Number of Estimators')
     plt.ylabel('Validation Error')
-    plt.title(f'Random Forest Validation Error per Fold\nCriterion {criterion.upper}')
+    plt.title(f'Random Forest Validation Error per Fold\nCriterion "{criterion}"')
     plt.legend()
     plt.grid(True)
     plt.savefig(f'../Dataset/Observations/plot_of_errors_random_forest_all_folds_with_criterion_{criterion}.png')
@@ -67,7 +67,7 @@ def train_nth_model(criterion: str,
     logs = Path.cwd().parent / "Dataset" / "Observations" / "Random Forest Metrics.txt"
     logfile = logs.open(mode='a')
     logfile.write(f"\n✍️ ========= {criterion.upper()} =========\n\n")
-    rfc = RandomForestClassifier(random_state=101,criterion=criterion)
+    rfc = RandomForestClassifier(random_state=101,criterion=criterion, class_weight='balanced')
     stable_idx = plot_errors_for_n_estimators(X_train, y_train, criterion)
 
     grid_params = {
@@ -95,6 +95,7 @@ def train_nth_model(criterion: str,
                                 max_features=best_max_features,
                                 min_samples_leaf=best_min_samples_leaf,
                                 bootstrap=best_use_bootstrap,
+                                class_weight='balanced',
                                 random_state=101)
 
 
@@ -103,7 +104,8 @@ def train_nth_model(criterion: str,
     preds = rfc.predict(X_test)
 
     acc = accuracy_score(y_test, preds)
-    roc_auc =roc_auc_score(y_test, preds)
+    roc_auc = roc_auc_score(y_test, preds)
+    cls_rprt = classification_report(y_test,preds)
     print(classification_report(y_test,preds))
     print(f'\nAccuracy: {acc}')
     logfile.write(classification_report(y_test,preds))
@@ -113,6 +115,7 @@ def train_nth_model(criterion: str,
     logfile.close()
     return {
         'model': rfc,
+        'cls_rprt': cls_rprt,
         'accuracy': acc,
         'roc_auc': roc_auc
     }
@@ -138,6 +141,7 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
 
     models_list = []
+    cls_rprt_list = []
     accs_list = []
     roc_auc_list = []
 
@@ -145,6 +149,7 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
         print (f"\n✍️ ========= {criterion.upper()} =========\n")
         res1 = train_nth_model(criterion, X_train, y_train, X_test, y_test)
         models_list.append(res1.get('model'))
+        cls_rprt_list.append(res1.get('cls_rprt'))
         accs_list.append(res1.get('accuracy'))
         roc_auc_list.append(res1.get('roc_auc'))
 
@@ -169,19 +174,23 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
         
         print(msg)
         logfile.write(f'\n{msg}\n')
+        print(cls_rprt_list[best_models[0]])
+        logfile.write(f'{cls_rprt_list[best_models[0]]}\n')
         print('Accuracy:'.ljust(15) + str(max_acc))
-        logfile.write('\nAccuracy:'.ljust(15) + str(max_acc) + '\n')
+        logfile.write('Accuracy:'.ljust(15) + str(max_acc) + '\n')
         print(f'ROC-AUC: {roc_auc_list[best_models[0]]}\n')
         logfile.write(f'ROC-AUC: {roc_auc_list[best_models[0]]}\n\n')
         print(f'Picking rfc{best_models[0]+1} to continue')
         logfile.write(f'Picking rfc{best_models[0]+1} to continue\n\n')
     else:
-        print(f"Best model: ".ljust(15) + f'{best_models[0]+1}')
-        logfile.write(f"Best model: ".ljust(15) + f'{best_models[0]+1}\n')
+        print(f"Best model: ".ljust(15) + f'{models_list[best_models[0]]}')
+        logfile.write(f"Best model: ".ljust(15) + f'{models_list[best_models[0]]}\n')
+        print(cls_rprt_list[best_models[0]])
+        logfile.write(f'{cls_rprt_list[best_models[0]]}\n')
         print('Accuracy:'.ljust(15) + str(max_acc))
-        logfile.write('Accuracy:'.ljust(15) + str(max_acc) + '\n\n')
-        print(f'ROC-AUC: {roc_auc_list[best_models[0]]}\n')
-        logfile.write(f'ROC-AUC: {roc_auc_list[best_models[0]]}\n\n')
+        logfile.write('Accuracy:'.ljust(15) + str(max_acc) + '\n')
+        print(f'ROC-AUC:'.ljust(15) + f'{roc_auc_list[best_models[0]]}\n')
+        logfile.write(f'ROC-AUC:'.ljust(15) + f'{roc_auc_list[best_models[0]]}\n\n')
     
 
     return {

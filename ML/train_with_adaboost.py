@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.metrics import accuracy_score, classification_report, roc_auc_score
 from sklearn.model_selection import StratifiedKFold
+from sklearn.utils.class_weight import compute_sample_weight
 import setup
 
 
@@ -26,6 +27,8 @@ def plot_errors_for_n_estimators(base_learner: DecisionTreeClassifier,
         X_tr, X_val = X_train.iloc[train_idx], X_train.iloc[val_idx]
         y_tr, y_val = y_train.iloc[train_idx], y_train.iloc[val_idx]
 
+        sample_weights = compute_sample_weight(class_weight='balanced', y=y_tr)
+
         errors = []
         prev_err = float('inf')
         stable_n = 50
@@ -33,7 +36,7 @@ def plot_errors_for_n_estimators(base_learner: DecisionTreeClassifier,
 
         for n in range(50, 501, 50):
             model = AdaBoostClassifier(estimator=base_learner, n_estimators=n, random_state=101)
-            model.fit(X_tr, y_tr)
+            model.fit(X_tr, y_tr, sample_weight=sample_weights)
             preds = model.predict(X_val)
             err = 1 - accuracy_score(y_val, preds)
             errors.append(err)
@@ -84,7 +87,9 @@ def train_model() -> Dict[str, Union[AdaBoostClassifier, Optional[StandardScaler
     # Split data into training and testing
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
 
-    base_learner = DecisionTreeClassifier(max_depth=1)
+    sample_weights = compute_sample_weight(class_weight='balanced', y=y_train)
+
+    base_learner = DecisionTreeClassifier(max_depth=1, class_weight='balanced')
 
     ada_boost = AdaBoostClassifier(estimator=base_learner, random_state=101)
 
@@ -100,14 +105,14 @@ def train_model() -> Dict[str, Union[AdaBoostClassifier, Optional[StandardScaler
     }
 
     grid = GridSearchCV(ada_boost ,param_grid=grid_params, verbose=3)
-    grid.fit(X_train,y_train)
+    grid.fit(X_train,y_train, sample_weight=sample_weights)
 
     print(grid.best_params_)
 
     ada_boost_model = AdaBoostClassifier(estimator=base_learner, 
                                          n_estimators=grid.best_params_.get('n_estimators'), 
                                          random_state=101)
-    ada_boost_model.fit(X_train,y_train)
+    ada_boost_model.fit(X_train,y_train, sample_weight=sample_weights)
     preds = ada_boost_model.predict(X_test)
     print('\n\n✍️ ======= AdaBoost model =======\n')
     logfile.write('\n\n✍️ ======= AdaBoost model =======\n\n')

@@ -5,7 +5,7 @@ from sklearn.discriminant_analysis import StandardScaler
 from sklearn.linear_model import LogisticRegressionCV
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score
+from sklearn.metrics import classification_report, accuracy_score, roc_auc_score
 from  pathlib import Path
 import setup
 
@@ -21,7 +21,9 @@ def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScal
 
     models_metrics = {
         'model': [],
-        'accuracy': []
+        'cls_rprt': [],
+        'accuracy': [],
+        'roc_auc': []
     }
 
     logs = Path.cwd().parent / "Dataset" / "Observations" / "Logistic Regression Metrics.txt"
@@ -54,28 +56,58 @@ def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScal
     X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X_train.columns)
     X_test = pd.DataFrame(scaler.transform(X_test), columns=X_test.columns)
 
-    lr1 = LogisticRegressionCV(cv=10, Cs=50, solver='saga', penalty='l1', max_iter=1000, random_state=101, verbose=3)
+    lr1 = LogisticRegressionCV(cv=10,
+                               Cs=50,
+                               solver='saga',
+                               penalty='l1',
+                               max_iter=1000,
+                               random_state=101,
+                               class_weight='balanced',
+                               verbose=3)
     lr1.fit(X_train, y_train)
     preds = lr1.predict(X_test)
     models_metrics.get('model').append(lr1)
+    cls_rprt_1 = classification_report(y_test,preds)
     accuracy1 = accuracy_score(y_test,preds)
+    roc_auc_1 = roc_auc_score(y_test,preds)
+    models_metrics.get('cls_rprt').append(cls_rprt_1)
     models_metrics.get('accuracy').append(accuracy1)
+    models_metrics.get('roc_auc').append(roc_auc_1)
     print('\n\n✍️ ======= LogisticRegressionCV with penalty: l1')
-    print(classification_report(y_test,preds))
+    print(cls_rprt_1)
+    print(f'Precise accuracy {accuracy1}')
+    print(f'Roc-Auc: {roc_auc_1}')
     logs.write('\n\n======= LogisticRegressionCV with penalty: l1 =======\n')
-    logs.write(classification_report(y_test,preds))
+    logs.write(cls_rprt_1)
+    logs.write(f'\nPrecise accuracy {accuracy1}\n')
+    logs.write(f'Roc-Auc: {roc_auc_1}\n')
     logs.write('\n')
 
-    lr2 = LogisticRegressionCV(cv=10, Cs=50, solver='saga', penalty='l2', max_iter=1000, random_state=101, verbose=3)
+    lr2 = LogisticRegressionCV(cv=10, 
+                               Cs=50,
+                               solver='saga',
+                               penalty='l2',
+                               max_iter=1000,
+                               random_state=101,
+                               class_weight='balanced',
+                               verbose=3)
     lr2.fit(X_train, y_train)
     preds = lr2.predict(X_test)
     models_metrics.get('model').append(lr2)
+    cls_rprt_2 = classification_report(y_test,preds)
     accuracy2 = accuracy_score(y_test,preds)
+    roc_auc_2 = roc_auc_score(y_test,preds)
+    models_metrics.get('cls_rprt').append(cls_rprt_2)
     models_metrics.get('accuracy').append(accuracy2)
+    models_metrics.get('roc_auc').append(roc_auc_2)
     print('\n\n✍️ ======= LogisticRegressionCV with penalty: l2 =======\n')
-    print(classification_report(y_test,preds))
+    print(cls_rprt_2)
+    print(f'Precise accuracy {accuracy2}')
+    print(f'Roc-Auc: {roc_auc_2}')
     logs.write('\n\n======= LogisticRegressionCV with penalty: l2 =======\n')
-    logs.write(classification_report(y_test,preds))
+    logs.write(cls_rprt_2)
+    logs.write(f'\nPrecise accuracy {accuracy2}\n')
+    logs.write(f'Roc-Auc: {roc_auc_2}\n')
     logs.write('\n')
 
     lr3 = LogisticRegressionCV(cv=10,
@@ -85,16 +117,25 @@ def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScal
                                max_iter=1000, 
                                l1_ratios=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9], 
                                random_state=101,
+                               class_weight='balanced',
                                verbose=3)
     lr3.fit(X_train, y_train)
     preds = lr3.predict(X_test)
     models_metrics.get('model').append(lr3)
+    cls_rprt_3 = classification_report(y_test,preds)
     accuracy3 = accuracy_score(y_test,preds)
+    roc_auc_3 = roc_auc_score(y_test,preds)
+    models_metrics.get('cls_rprt').append(cls_rprt_3)
     models_metrics.get('accuracy').append(accuracy3)
+    models_metrics.get('roc_auc').append(roc_auc_3)
     print('\n\n✍️ ======= LogisticRegressionCV with penalty: elasticnet =======')
-    print(classification_report(y_test,preds))
+    print(cls_rprt_3)
+    print(f'Precise accuracy {accuracy3}')
+    print(f'Roc-Auc: {roc_auc_3}')
     logs.write('\n\n======= LogisticRegressionCV with penalty: elasticnet =======\n')
-    logs.write(classification_report(y_test,preds))
+    logs.write(cls_rprt_3)
+    logs.write(f'\nPrecise accuracy {accuracy3}\n')
+    logs.write(f'Roc-Auc: {roc_auc_3}\n')
     logs.write('\n')
     
     best_accuracy = max(models_metrics.get('accuracy'))
@@ -119,7 +160,7 @@ def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScal
     # If multiple best model found, create a message to display them
     if len(best_accuracy_idxs) > 1:
         msg = 'Tie between models: ['
-        for idx in range(len(best_accuracy_idxs) - 1):
+        for idx in best_accuracy_idxs[:-1]:
             msg += f'lr{idx+1}, '
         msg += f'lr{best_accuracy_idxs[-1] + 1}]'
 
@@ -131,12 +172,18 @@ def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScal
     
     print('\n\n✍️\t ======= Selected Best Model =======\n')
     if len(best_accuracy_idxs) > 1:
-        print(f'\n{msg}')
+        print(f'\n{msg}\n')
     print(f'✅\tSelected best model: lr{best_accuracy_idx+1}')
+    print(f'{models_metrics.get('cls_rprt')[best_accuracy_idx]}')
+    print(f'\nPrecise Accuracy: {best_accuracy}')
+    print(f'ROC_AUC: {models_metrics.get('roc_auc')[best_accuracy_idx]}\n')
     logs.write('\n\n\t======= Selected Best Model =======\n')
     if len(best_accuracy_idxs) > 1:
-        logs.write(f'\n{msg}\n')
+        logs.write(f'\n{msg}\n\n')
     logs.write(f'Selected best model: lr{best_accuracy_idx+1}\n')
+    logs.write(f'{models_metrics.get('cls_rprt')[best_accuracy_idx]}')
+    logs.write(f'\nPrecise Accuracy: {best_accuracy}\n')
+    logs.write(f'ROC_AUC: {models_metrics.get('roc_auc')[best_accuracy_idx]}')
 
     logs.close()
 
