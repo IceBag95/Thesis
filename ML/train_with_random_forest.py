@@ -3,13 +3,42 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from scipy import stats
 from sklearn.discriminant_analysis import StandardScaler
 from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, accuracy_score, roc_auc_score
 import setup
+
+
+
+class RfcModel:
+    counter = 0
+
+    def __init__(self, model, cls_rprt, accuracy, roc_auc):
+        RfcModel.counter += 1
+        self.id = RfcModel.counter
+        self.model = model
+        self.cls_rprt = cls_rprt
+        self.accuracy = accuracy
+        self.roc_auc = roc_auc
+
+    def get_id(self):
+        return self.id
+    
+    def get_model(self):
+        return self.model
+        
+    def get_classification_report(self):
+        return self.cls_rprt
+    
+    def get_accuracy(self):
+        return self.accuracy
+    
+    def get_roc_auc(self):
+        return self.roc_auc
+    
+    
+
 
 # In case we need it
 def plot_errors_for_n_estimators(X_train: pd.DataFrame, y_train: pd.DataFrame, criterion: str) -> int:
@@ -58,11 +87,12 @@ def plot_errors_for_n_estimators(X_train: pd.DataFrame, y_train: pd.DataFrame, c
     return stable_index
 
 
+
 def train_nth_model(criterion: str,
                     X_train: pd.DataFrame,
                     y_train: pd.DataFrame,
                     X_test: pd.DataFrame,
-                    y_test: pd.DataFrame) -> Dict[str, Union[RandomForestClassifier, Optional[StandardScaler]]]:
+                    y_test: pd.DataFrame) -> RfcModel:
     
     logs = Path.cwd().parent / "Dataset" / "Observations" / "Random Forest Metrics.txt"
     logfile = logs.open(mode='a')
@@ -113,12 +143,49 @@ def train_nth_model(criterion: str,
     print(f'ROC-AUC: {roc_auc}\n')
     logfile.write(f'ROC-AUC: {roc_auc}\n\n')
     logfile.close()
-    return {
-        'model': rfc,
-        'cls_rprt': cls_rprt,
-        'accuracy': acc,
-        'roc_auc': roc_auc
+
+    ret_model = RfcModel(rfc, cls_rprt, acc, roc_auc)
+    return ret_model
+
+
+
+def pick_best_model_based_on(metric: str, models_list: List) -> List[RfcModel]:
+    metrics_list = []
+    best_models = []
+    
+    # We define a dict mapping the metric to the class method NAME
+    metric_getters = {
+        'accuracy': 'get_accuracy',
+        'roc_auc': 'get_roc_auc',
+        'classification_report': 'get_classification_report'
     }
+    
+    # We get the method name 
+    getter_name = metric_getters[metric]
+
+    
+    for model in models_list:
+        metric_method = getattr(model, getter_name)   # get the actual class method of each 'model' obj
+        metrics_list.append(metric_method())          # execute the method and append the result to the list
+    
+
+    max_value =  max(metrics_list)
+    for idx, val in enumerate(metrics_list):
+        if val == max_value:
+            best_models.append(models_list[idx])
+
+    return best_models
+
+    # max_ = max(accs_list)
+    # best_models = []
+    # for i in range(len(models_list)):
+    #     if accs_list[i] == max_acc:
+    #         best_models.append(i)
+    
+    # rfc = models_list[best_models[0]]
+
+
+
 
 def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardScaler]]]:
 
@@ -141,26 +208,17 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=101)
 
     models_list = []
-    cls_rprt_list = []
-    accs_list = []
-    roc_auc_list = []
 
     for criterion in ['gini', 'entropy', 'log_loss']:
         print (f"\n✍️ ========= {criterion.upper()} =========\n")
-        res1 = train_nth_model(criterion, X_train, y_train, X_test, y_test)
-        models_list.append(res1.get('model'))
-        cls_rprt_list.append(res1.get('cls_rprt'))
-        accs_list.append(res1.get('accuracy'))
-        roc_auc_list.append(res1.get('roc_auc'))
+        res = train_nth_model(criterion, X_train, y_train, X_test, y_test)
+        models_list.append(res)
 
+    best_models_acc = pick_best_model_based_on('accuracy', models_list)
+    best_models_roc_auc = pick_best_model_based_on('roc_auc', best_models_acc)
 
-    max_acc = max(accs_list)
-    best_models = []
-    for i in range(len(models_list)):
-        if accs_list[i] == max_acc:
-            best_models.append(i)
-    
-    rfc = models_list[best_models[0]]
+    best_models = best_models_roc_auc[:]
+
 
     logfile = logs.open(mode='a')
     
@@ -169,34 +227,32 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
 
     if len(best_models) > 1:
         msg = 'Tie between:   '
-        for idx in best_models:
-            msg += f'rfc{idx+1} '
+        for model in best_models:
+            msg += f'rfc{model.get_id()+1} '
         
         print(msg)
         logfile.write(f'\n{msg}\n')
-        print(cls_rprt_list[best_models[0]])
-        logfile.write(f'{cls_rprt_list[best_models[0]]}\n')
-        print('Accuracy:'.ljust(15) + str(max_acc))
-        logfile.write('Accuracy:'.ljust(15) + str(max_acc) + '\n')
-        print(f'ROC-AUC: {roc_auc_list[best_models[0]]}\n')
-        logfile.write(f'ROC-AUC: {roc_auc_list[best_models[0]]}\n\n')
-        print(f'Picking rfc{best_models[0]+1} to continue')
-        logfile.write(f'Picking rfc{best_models[0]+1} to continue\n\n')
-    else:
-        print(f"Best model: ".ljust(15) + f'{models_list[best_models[0]]}')
-        logfile.write(f"Best model: ".ljust(15) + f'{models_list[best_models[0]]}\n')
-        print(cls_rprt_list[best_models[0]])
-        logfile.write(f'{cls_rprt_list[best_models[0]]}\n')
-        print('Accuracy:'.ljust(15) + str(max_acc))
-        logfile.write('Accuracy:'.ljust(15) + str(max_acc) + '\n')
-        print(f'ROC-AUC:'.ljust(15) + f'{roc_auc_list[best_models[0]]}\n')
-        logfile.write(f'ROC-AUC:'.ljust(15) + f'{roc_auc_list[best_models[0]]}\n\n')
     
+    print(best_models[0].get_classification_report())
+    logfile.write(f'{best_models[0].get_classification_report()}\n')
+    print('\nAccuracy:'.ljust(15) + str(best_models[0].get_accuracy()))
+    logfile.write('\nAccuracy:'.ljust(15) + str(best_models[0].get_accuracy()) + '\n')
+    print(f'ROC-AUC:'.ljust(15) + str(best_models[0].get_roc_auc()) + '\n')
+    logfile.write(f'ROC-AUC:'.ljust(15) + str(best_models[0].get_roc_auc()) + '\n\n')
+    
+    if len(best_models) > 1:
+        print(f'Picking rfc{best_models[0].get_id()} to continue')
+        logfile.write(f'Picking rfc{best_models[0].get_id()} to continue\n\n')
+    
+    rfc = best_models[0].get_model()
+    print(f'Best model: {rfc}')
 
     return {
             'model': rfc,
             'scaler': None
         }
+
+
 
 
 if __name__ == '__main__':
