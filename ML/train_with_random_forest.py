@@ -149,7 +149,7 @@ def train_nth_model(criterion: str,
 
 
 
-def pick_best_model_based_on(metric: str, models_list: List) -> List[RfcModel]:
+def pick_best_model_based_on(metric: str, models_list: List[RfcModel]) -> List[RfcModel]:
     metrics_list = []
     best_models = []
     
@@ -175,14 +175,6 @@ def pick_best_model_based_on(metric: str, models_list: List) -> List[RfcModel]:
             best_models.append(models_list[idx])
 
     return best_models
-
-    # max_ = max(accs_list)
-    # best_models = []
-    # for i in range(len(models_list)):
-    #     if accs_list[i] == max_acc:
-    #         best_models.append(i)
-    
-    # rfc = models_list[best_models[0]]
 
 
 
