@@ -214,10 +214,19 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
         res = train_nth_model(criterion, X_train, y_train, X_test, y_test)
         models_list.append(res)
 
-    best_models_acc = pick_best_model_based_on('accuracy', models_list)
-    best_models_roc_auc = pick_best_model_based_on('roc_auc', best_models_acc)
+    
+    # Start checks to find best model
+    # First for accuracy
+    best_models = pick_best_model_based_on('accuracy', models_list)
+    
+    # If we get more than one we go for roc_auc
+    if len(best_models) > 1:
+        best_models= pick_best_model_based_on('roc_auc', best_models)
 
-    best_models = best_models_roc_auc[:]
+    # ....
+    # If we have more than one again we can continue here for more metrics, but the whole module
+    # will need to be adjusted to take into consideration these metrics
+
 
 
     logfile = logs.open(mode='a')
