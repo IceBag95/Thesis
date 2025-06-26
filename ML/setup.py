@@ -49,13 +49,6 @@ def setup_dataset() -> None:
     df.to_csv("../Dataset/clean_data.csv", index=False)
     print('\n✅ Clean Dataset SAVED\n')
 
-    print('\n⏳ Storing the column names of the dataset in order...')
-    columns = {"dataset_columns" : df.drop('target', axis=1).columns.tolist()}
-    columns_file = open(Path.cwd().parent / "Back-end" / "Assets" / "columns.json" , 'w')
-    json.dump(columns,columns_file)
-    columns_file.close()
-    print('\n✅ Store SUCCESS\n')
-    #print(df)
 
     
     #------------------------------------------------------------------------------------------
