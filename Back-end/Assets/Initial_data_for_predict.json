@@ -30,19 +30,19 @@
             "answers"   : [
                             {
                                 "shown_value": "Ασυμπτωματική",
-                                "actual_value": 1
+                                "actual_value": "0"
                             },
                             {
                                 "shown_value": "Ασταθή",
-                                "actual_value": 2
+                                "actual_value": "1"
                             },
                             {
                                 "shown_value": "Σταθερή", 
-                                "actual_value": 3
+                                "actual_value": "2"
                             },
                             {
                                 "shown_value": "Δεν έχει στηθάγχη",
-                                "actual_value": 4
+                                "actual_value": "3"
                             }
                         ],
             "limits": {}

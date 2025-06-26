@@ -23,11 +23,11 @@ def make_heart_attack_prediction(request: HttpRequest) -> JsonResponse:
 
         ml_model  = MlModelConfig.get_model()
         ml_scaler = MlModelConfig.get_scaler()
-        columns   = MlModelConfig.get_columns()
+        columns_and_limits = MlModelConfig.get_columns_and_limits()
 
         print(f'ML MODEL: {ml_model}')
-        print(f'ML MODEL: {ml_scaler}')
-        print(f'COLUMNS: {columns}')
+        print(f'ML SCALER: {ml_scaler}')
+        print(f'COLUMNS AND LIMITS: {columns_and_limits}')
 
 
         try:
@@ -38,24 +38,38 @@ def make_heart_attack_prediction(request: HttpRequest) -> JsonResponse:
                 raise json.JSONDecodeError("Missing 'usr_ans_list' key. No answers received from user.", "", 0)
             
             user_data_for_model = {}
-            columns_copy = columns[:]
+            
+            columns_list = []
+            for item in columns_and_limits:
+                columns_list.append(item.get("column"))
+            
+            columns_list_copy = columns_list[:]
+            
             for obj in user_data_list:
                 curr_col = obj.get('for_column')
-                if curr_col in columns_copy:
-                    
+                if curr_col in columns_list:
+                    idx = columns_list.index(curr_col)
                     # Here we check x type if can be converted to anything else than string
                     x = obj.get('current_answer')
+                    lower_limit = columns_and_limits[idx].get("limits")[0]
+                    upper_limit = columns_and_limits[idx].get("limits")[1]
                     print(x)
+                    print(lower_limit)
+                    print(upper_limit)
                     
                     # We try float 
                     try:
                         x = float(x)
+                        if not lower_limit <= x <= upper_limit:
+                            return JsonResponse({'error': f'Answer out of bounds, please refresh and try again'}, status=400)
                     except Exception as e:
                         pass
                     
                     # Then int
                     try:
                         x = int(x)
+                        if not lower_limit <= x <= upper_limit:
+                            return JsonResponse({'error': f'Answer out of bounds, please refresh and try again'}, status=400)
                     except Exception as e:
                         pass
                     
@@ -66,16 +80,16 @@ def make_heart_attack_prediction(request: HttpRequest) -> JsonResponse:
                     if x == "False":
                         x = False
 
-                    # If nothing then let it be str
-                    print(x)
 
                     user_data_for_model[obj.get('for_column')] = x
-                    columns_copy.remove(curr_col)
+                    columns_list_copy.remove(curr_col)
+
+                    print(f"END FOR {curr_col}")
                 else:
-                    raise json.JSONDecodeError(f"Can't make prediction. Column {curr_col} does not seem to exist in the dataset.", "", 0)
+                    raise json.JSONDecodeError({f"Can't make prediction. Column {curr_col} does not seem to exist in the dataset.", "", 0})
             
-            if len(columns_copy) > 0:
-                raise json.JSONDecodeError(f"Can't make prediction. No data received for columns {columns_copy}", "", 0)
+            if len(columns_list_copy) > 0:
+                raise json.JSONDecodeError(f"Can't make prediction. No data received for columns {columns_list_copy}", "", 0)
 
             print(f"User_data_for_model: {user_data_for_model}")
             try:
@@ -98,7 +112,7 @@ def make_heart_attack_prediction(request: HttpRequest) -> JsonResponse:
             # Send a JSON response back to the frontend
             return JsonResponse(response_data, status=200)
         except json.JSONDecodeError as e:
-            return JsonResponse({'status': 'error', 'message': f'Invalid JSON data {e.__str__}'}, status=400)
+            return JsonResponse({'error': f'Invalid JSON data {e.__str__}'}, status=400)
 
     return JsonResponse({
         "error": "no data",

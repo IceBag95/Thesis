@@ -24,6 +24,7 @@ def setup_dataset() -> None:
     print('\n⏳ Adjusting data to be better suited for training...')
     df['fasting blood sugar'] = df['fasting blood sugar'].astype(bool)
     df['exercise angina'] = df['exercise angina'].astype(bool)
+    df['Chest pain type'] = df['Chest pain type'] - 1
     df['target'] = df['target'].astype(bool)
 
     dummy_df = pd.get_dummies(df['sex'])
