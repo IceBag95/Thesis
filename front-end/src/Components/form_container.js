@@ -4,7 +4,7 @@ import Answers from "./answers";
 import '../Component-Styles/form_container.css'
 
 
-function FormContainer( {step, currAns, setCurrAns, setNoQ} ) {
+function FormContainer( {step, currAns, setCurrAns, setNoQ, canGoNext, setCanGoNext} ) {
     const [initialData, setInitialData] = useState({});
 
     useEffect(() => {
@@ -25,7 +25,10 @@ function FormContainer( {step, currAns, setCurrAns, setNoQ} ) {
                     answers={initialData.qna ? initialData.qna[step].answers : null} 
                     currQuest={initialData.qna ? initialData.qna[step].question : null} 
                     currAns={currAns}
-                    setCurrAns={setCurrAns} />
+                    setCurrAns={setCurrAns} 
+                    currLimits={initialData.qna ? initialData.qna[step].limits : {}}
+                    canGoNext={canGoNext}
+                    setCanGoNext={setCanGoNext}/>
         </div>
     )
 

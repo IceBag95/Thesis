@@ -15,6 +15,7 @@ export default function BaseContainer() {
   const [userAnswers, setUserAnwers] = React.useState({ "usr_ans_list": []});
   const [currentAns, setCurrentAns] = React.useState({});
   const [hasResults, setHasResults] = React.useState(false);
+  const [canGoNext, setCanGoNext] = React.useState(false);
 
 
   const handleNext = () => {
@@ -43,6 +44,7 @@ export default function BaseContainer() {
       setCurrentAns(userAnswers.usr_ans_list[currentStep + 1]);
     }
 
+    setCanGoNext(false);
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
 
   };
@@ -143,7 +145,7 @@ export default function BaseContainer() {
       ) : (
         <React.Fragment sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
           <Typography sx={{ mt: 2, mb: 1 , display: 'flex', width: '60%'}}>
-            <FormContainer step={activeStep} currAns={currentAns} setCurrAns={setCurrentAns} setNoQ={setSteps}/>          
+            <FormContainer step={activeStep} currAns={currentAns} setCurrAns={setCurrentAns} setNoQ={setSteps} canGoNext={canGoNext} setCanGoNext={setCanGoNext}/>          
           </Typography>
           <Box sx={{ display: 'flex', pt: 2 , width: '50%', justifyContent:'space-evenly' , alignItems: 'center'}}>
             <Button
@@ -155,7 +157,7 @@ export default function BaseContainer() {
               Πισω
             </Button>
             <Box sx={{ display: 'flex' }} />
-                <Button onClick={handleNext} sx={{ margin: "0px 20px" }} disabled={!currentAns.current_answer}>
+                <Button onClick={handleNext} sx={{ margin: "0px 20px" }} disabled={!canGoNext}>
                 {activeStep === steps.length - 1 ? 'Αποστολη απαντησεων' : 'Επομενο'}
                 </Button>
           </Box>

@@ -3,7 +3,11 @@
         {
             "for_column": "age",
             "question"  : "Εισάγετε την ηλικία του ασθενούς:",
-            "answers"   : []
+            "answers"   : [],
+            "limits": {
+                "upper_limit": 77,
+                "lower_limit": 28
+            }
         },
         {
             "for_column": "Male",
@@ -17,7 +21,8 @@
                                 "shown_value": "Female",
                                 "actual_value": "False"
                             }
-                        ]
+                        ],
+            "limits": {}
         },
         {
             "for_column": "Chest pain type",
@@ -39,17 +44,26 @@
                                 "shown_value": "Δεν έχει στηθάγχη",
                                 "actual_value": 4
                             }
-                        ]
+                        ],
+            "limits": {}
         },
         {
             "for_column": "trestbps",
-            "question"  : "Πόσους καρδιακούς παλμούς ανά λεπτό έχει ο ασθενής σε κατάσταση ξεκούρασης;",
-            "answers"   : []
+            "question"  : "Πόση συστολική πίεση έχει ο ασθενής σε κατάσταση ξεκούρασης;",
+            "answers"   : [],
+            "limits": {
+                "upper_limit": 200,
+                "lower_limit": 92
+            }
         },
         {
             "for_column": "cholesterol",
             "question"  : "Ποια ήταν τα επίπεδα χοληστερόλης του ασθενούς στις τελευταίες αιματολιγικές εξετάσεις;",
-            "answers"   : []
+            "answers"   : [],
+            "limits": {
+                "upper_limit": 603,
+                "lower_limit": 85
+            }
         },
         {
             "for_column": "fasting blood sugar",
@@ -63,7 +77,8 @@
                                     "shown_value": "Όχι",
                                     "actual_value": "False"
                                 }
-                            ]
+                            ],
+            "limits": {}
         },
         {
             "for_column": "resting ecg",
@@ -81,12 +96,17 @@
                                     "shown_value": "Άλλο",
                                     "actual_value": "2"
                                 }
-                            ]
+                            ],
+            "limits": {}
         },
         {
             "for_column": "max heart rate",
             "question"  : "Ποιοι ήταν οι μέγιστοι καρδιακοί παλμοί του ασθενούς στο τελευταίο τεστ κοπώσεως;",
-            "answers"   : []
+            "answers"   : [],
+            "limits": {
+                "upper_limit": 202,
+                "lower_limit": 69
+            }
         },
         {
             "for_column": "exercise angina",
@@ -100,12 +120,17 @@
                                     "shown_value": "Όχι",
                                     "actual_value": "False"
                                 }
-                            ]
+                            ],
+            "limits": {}
         },
         {
             "for_column": "oldpeak",
             "question"  : "Πόσα χιλιοστά ήταν η υποχώρηση του ST τμήματος του ασθενούς σε σχέση με το αντίστοιχο σε κατάσταση ξεκούρασης (oldpeak) στο τελευταίο του τεστ κοπώσεως;",
-            "answers"   : []
+            "answers"   : [],
+            "limits": {
+                "upper_limit": 6.2,
+                "lower_limit": 0
+            }
         }
     ]
 

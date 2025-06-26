@@ -1,12 +1,12 @@
-import { useRef, useState } from "react";
+import { useRef } from "react";
 
-function Answers( { for_column, answers, currQuest, currAns, setCurrAns } ) {
+function Answers( { for_column, answers, currQuest, currAns, setCurrAns, currLimits, canGoNext, setCanGoNext } ) {
 
     const selectedValue = useRef();
-    const [invalidAnswer, setInvalidAnswer] = useState(false); 
     if (Array.isArray(answers) && answers.length > 0 && Object.keys(currAns).length === 0 ) {
         let newSelectedValue = answers[0].actual_value;
         selectedValue.current = newSelectedValue;
+        setCanGoNext(true);
         setCurrAns({
                         for_column: for_column,
                         current_question: currQuest,
@@ -36,17 +36,25 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns } ) {
     }
 
     const handleNumberChange = (event) => {
-        if (event.target.value >= 0){
-            setInvalidAnswer(false);
-            setCurrAns({
-                for_column: for_column,
-                current_question: currQuest,
-                current_answer: event.target.value
-            });
+        console.log("entered handling")
+        const ans = event.target.value
+        console.log(ans)
+        console.log(currLimits.lower_limit)
+        console.log(currLimits.upper_limit)
+        console.log(ans >= currLimits.lower_limit && ans <= currLimits.upper_limit)
+
+        if (ans >= currLimits.lower_limit && ans <= currLimits.upper_limit){
+            console.log("setting true")
+            setCanGoNext(true);
         }
         else {
-            setInvalidAnswer(true);
+            setCanGoNext(false);
         }
+        setCurrAns({
+            for_column: for_column,
+            current_question: currQuest,
+            current_answer: ans
+        });
     }
 
     return(
@@ -77,19 +85,22 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns } ) {
                                 class="number-input"
                                 value={currAns.current_answer || ""}
                                 onChange={handleNumberChange}
-                                style={invalidAnswer ? {backgroundColor: "rgb(245, 134, 132)", 
+                                style={!canGoNext? {
+                                                        backgroundColor: "rgb(245, 134, 132)", 
                                                         border: 'solid',
                                                         borderColor: "red", 
                                                         borderWidth: "2px",
-                                                        borderRadius: "4px"} 
+                                                        borderRadius: "4px",
+                                                        color:"red"} 
                                                     : {backgroundColor: "white", 
                                                         border: 'solid',
                                                         borderColor: "gray", 
                                                         borderWidth: "2px",
-                                                        borderRadius: "4px"}} />
+                                                        borderRadius: "4px",
+                                                        color: "black"}} />
                         
-                        {invalidAnswer ? 
-                            <p style={{color: "red", fontSize: "0.7em"}}>Εισάγετε μόνο μη αρνητικές τιμές</p>
+                        {!canGoNext ? 
+                            <p style={{color: "red", fontSize: "0.7em"}}>Εισάγετε τιμές μεταξύ {currLimits.lower_limit} και {currLimits.upper_limit}</p>
                         :   ""} 
                     </>
                 ) : (

@@ -17,6 +17,7 @@ def setup_dataset() -> None:
     df.drop('ST slope', axis=1, inplace=True)
     df.drop(df[(df['target'] != 1) & (df['target'] != 0)].index, inplace=True)
     df.drop(df[df['cholesterol'] == 0].index, inplace=True)
+    df.drop(df[df['oldpeak'] < 0].index, inplace=True)
     df.drop(df[df.duplicated()].index, inplace=True)
     print('\n✅ Removal SUCCESS\n')
 
