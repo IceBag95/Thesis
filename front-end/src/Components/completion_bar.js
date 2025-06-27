@@ -61,6 +61,7 @@ export default function BaseContainer() {
     setCurrentAns({});
     setResult({});
     setHasResults(false);
+    setCanGoNext(false);
   };
 
   React.useEffect(() => {
