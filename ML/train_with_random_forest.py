@@ -229,7 +229,7 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
     if len(best_models) > 1:
         msg = 'Tie between:   '
         for model in best_models:
-            msg += f'rfc{model.get_id()+1} '
+            msg += f'rfc{model.get_id()} '
         
         print(msg)
         logfile.write(f'\n{msg}\n')
