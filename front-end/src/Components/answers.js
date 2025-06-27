@@ -8,7 +8,6 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns, currLim
         console.log('entered if');
         let newSelectedValue = answers[0].actual_value;
         selectedValue.current = newSelectedValue;
-//        setCanGoNext(true);
         setCurrAns({
                         for_column: for_column,
                         current_question: currQuest,
