@@ -41,12 +41,7 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns, currLim
     }
 
     const handleNumberChange = (event) => {
-        console.log("entered handling")
         const ans = event.target.value
-        console.log(ans)
-        console.log(currLimits.lower_limit)
-        console.log(currLimits.upper_limit)
-        console.log(ans >= currLimits.lower_limit && ans <= currLimits.upper_limit)
 
         if (ans >= currLimits.lower_limit && ans <= currLimits.upper_limit){
             console.log("setting true")
