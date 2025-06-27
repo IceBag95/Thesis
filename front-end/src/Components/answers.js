@@ -44,7 +44,6 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns, currLim
         const ans = event.target.value
 
         if (ans >= currLimits.lower_limit && ans <= currLimits.upper_limit){
-            console.log("setting true")
             setCanGoNext(true);
         }
         else {
