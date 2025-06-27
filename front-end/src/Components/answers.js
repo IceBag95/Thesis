@@ -2,11 +2,13 @@ import { useRef } from "react";
 
 function Answers( { for_column, answers, currQuest, currAns, setCurrAns, currLimits, canGoNext, setCanGoNext } ) {
 
+    console.log('rendering answers')
     const selectedValue = useRef();
-    if (Array.isArray(answers) && answers.length > 0 && Object.keys(currAns).length === 0 ) {
+    if (Array.isArray(answers) && answers.length > 0 && Object.keys(currAns).length === 0) {
+        console.log('entered if');
         let newSelectedValue = answers[0].actual_value;
         selectedValue.current = newSelectedValue;
-        setCanGoNext(true);
+//        setCanGoNext(true);
         setCurrAns({
                         for_column: for_column,
                         current_question: currQuest,
@@ -22,6 +24,9 @@ function Answers( { for_column, answers, currQuest, currAns, setCurrAns, currLim
     }
     else {
         selectedValue.current = currAns.current_answer;
+        if (currAns.current_answer) {
+            setCanGoNext(true)
+        }
     }
 
     const handleRadioChange = (event) => {
