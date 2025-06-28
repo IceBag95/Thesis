@@ -104,7 +104,7 @@ def train_model() -> Dict[str, Union[AdaBoostClassifier, Optional[StandardScaler
         'n_estimators': list(range(current_least_error_index,501))
     }
 
-    grid = GridSearchCV(ada_boost ,param_grid=grid_params, verbose=3)
+    grid = GridSearchCV(ada_boost ,param_grid=grid_params, verbose=3, cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=101))
     grid.fit(X_train,y_train, sample_weight=sample_weights)
 
     print(grid.best_params_)
