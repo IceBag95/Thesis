@@ -140,7 +140,10 @@ def train_model() -> Dict[str, Union[AdaBoostClassifier, Optional[StandardScaler
 		'n_estimators': list(range(current_least_error_index,501))
 	}
 
-	grid = GridSearchCV(ada_boost ,param_grid=grid_params, verbose=3, cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=101))
+	grid = GridSearchCV(ada_boost,
+					 	param_grid=grid_params,
+						verbose=3,
+						cv=StratifiedKFold(n_splits=5, shuffle=True, random_state=101))
 	grid.fit(X_train,y_train, sample_weight=sample_weights)
 
 	print(grid.best_params_)
@@ -165,7 +168,7 @@ def train_model() -> Dict[str, Union[AdaBoostClassifier, Optional[StandardScaler
 	logfile.write(f'\n✍️ Cross Validation Results for AdaBoost model:\n\n{cv_results}\n\n')
 	logfile.close()
 
-	    # Make and save image for confusion matrix for this model
+	# Make and save image for confusion matrix for this model
 	filepath = Path.cwd().parent / "Observations" / "Adaboost" / f"Confusion_Matrix_AdaBoost"
 	cm = confusion_matrix(y_test,preds)
     
