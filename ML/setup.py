@@ -53,7 +53,7 @@ def setup_dataset() -> None:
     
     #------------------------------------------------------------------------------------------
     print('\n⏳ Creating images of data relationships to review...')
-    observations_path = Path.cwd().parent / "Dataset" / "Observations"
+    observations_path = Path.cwd().parent / "Observations"
     if not observations_path.exists():
         observations_path.mkdir(parents=True, exist_ok=True)
         
@@ -63,7 +63,7 @@ def setup_dataset() -> None:
     # Visualize the correlation matrix
     plt.figure(figsize=(10, 8))
     sns.heatmap(correlation_matrix, annot=True, cmap="coolwarm", fmt=".2f")
-    plt.savefig('../Dataset/Observations/heatmap_of_dataset.png')
+    plt.savefig('../Observations/heatmap_of_dataset.png')
     plt.close()
 
     # from the plot it seems that there is not much linear correlation so linear regression 
@@ -73,7 +73,7 @@ def setup_dataset() -> None:
     
     # Visualize the correlation matrix
     sns.pairplot(df, hue='target')
-    plt.savefig('../Dataset/Observations/pairplot_of_dataset.png')
+    plt.savefig('../Observations/pairplot_of_dataset.png')
     print('\n✅ Images CREATED\n')
     plt.close()
 

@@ -3,10 +3,13 @@ import numpy as np
 from scipy import stats
 from sklearn.discriminant_analysis import StandardScaler
 from sklearn.linear_model import LogisticRegressionCV
+from sklearn.model_selection import StratifiedKFold
 import pandas as pd
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report, accuracy_score, roc_auc_score
+from sklearn.metrics import classification_report, accuracy_score, roc_auc_score, confusion_matrix, precision_score, recall_score, f1_score, RocCurveDisplay
 from  pathlib import Path
+import matplotlib.pyplot as plt
+import seaborn as sns
 import setup
 
 
@@ -15,13 +18,14 @@ class LrcModel:
 
     counter = 0
 
-    def __init__(self, model, cls_rprt, accuracy, roc_auc):
+    def __init__(self, model, cls_rprt, accuracy, roc_auc, cv_results):
         LrcModel.counter += 1
-        self.id = LrcModel.counter
+        self.id = f'lrc{LrcModel.counter}'
         self.model = model
         self.cls_rprt = cls_rprt
         self.accuracy = accuracy
         self.roc_auc = roc_auc
+        self.cv_results = cv_results
 
     def get_id(self):
         return self.id
@@ -37,6 +41,38 @@ class LrcModel:
 
     def get_roc_auc(self):
         return self.roc_auc
+    
+    def get_cv_results(self):
+        return self.cv_results
+    
+
+
+def evaluate_with_cv(model:LogisticRegressionCV, X:pd.DataFrame, y:pd.DataFrame, k=5):
+	skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+
+	accuracies, aucs, precisions, recalls, f1s = [], [], [], [], []
+
+	for train_idx, test_idx in skf.split(X, y):
+		X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+		y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+
+		model.fit(X_train, y_train)
+		y_pred = model.predict(X_test)
+
+		accuracies.append(accuracy_score(y_test, y_pred))
+		aucs.append(roc_auc_score(y_test, model.predict_proba(X_test)[:, 1]))
+		precisions.append(precision_score(y_test, y_pred))
+		recalls.append(recall_score(y_test, y_pred))
+		f1s.append(f1_score(y_test, y_pred))
+
+	results = {
+		'Metric': ['Accuracy', 'ROC AUC', 'Precision', 'Recall', 'F1 Score'],
+		'Mean': [np.mean(accuracies), np.mean(aucs), np.mean(precisions), np.mean(recalls), np.mean(f1s)],
+		'Std Dev': [np.std(accuracies), np.std(aucs), np.std(precisions), np.std(recalls), np.std(f1s)]
+	}
+
+	results_df = pd.DataFrame(results)
+	return results_df
 
 
 
@@ -46,7 +82,7 @@ def train_nth_model(penalty: str,
                     X_test: pd.DataFrame,
                     y_test: pd.DataFrame) -> LrcModel:
     
-    logs = Path.cwd().parent / "Dataset" / "Observations" / "Logistic Regression Metrics.txt"
+    logs = Path.cwd().parent / "Observations" / "Logistic Regression" / "Logistic Regression Metrics.txt"
 
     logfile = logs.open('a')
 
@@ -68,10 +104,13 @@ def train_nth_model(penalty: str,
 
 
     lrc.fit(X_train, y_train)
+
+    cv_results = evaluate_with_cv(lrc, X_train, y_train)
+
     preds = lrc.predict(X_test)
     cls_rprt = classification_report(y_test,preds)
     accuracy = accuracy_score(y_test,preds)
-    roc_auc = roc_auc_score(y_test,preds)
+    roc_auc = roc_auc_score(y_test, lrc.predict_proba(X_test)[:, 1])
     print(f'\n\n✍️ ======= LogisticRegressionCV with penalty: {penalty}')
     print(cls_rprt)
     print(f'Precise accuracy {accuracy}')
@@ -80,11 +119,34 @@ def train_nth_model(penalty: str,
     logfile.write(cls_rprt)
     logfile.write(f'\nPrecise accuracy {accuracy}\n')
     logfile.write(f'Roc-Auc: {roc_auc}\n')
+    print(f'\nCross Validation Results {lrc}:\n\n{cv_results}\n')
+    logfile.write(f'\nCross Validation Results {lrc}:\n\n{cv_results}\n')
+
     logfile.write('\n')
 
     logfile.close()
 
-    return LrcModel(lrc, cls_rprt, accuracy, roc_auc)
+    # Make and save image for confusion matrix for this model
+    filepath = Path.cwd().parent / "Observations" / "Logistic Regression" / f"Confusion_Matrix_LR_with_penalty_{penalty}"
+    cm = confusion_matrix(y_test,preds)
+    
+    plt.figure(figsize=(6,5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title(f'Confusion Matrix\nLogistic Regression with penalty: {penalty}')
+    plt.xlabel('Predicted Class')
+    plt.ylabel('Actual Class')
+    plt.savefig(filepath)
+    plt.close()
+
+    # Make and save Roc Curve graph for this model
+    filepath = Path.cwd().parent / "Observations" / "Logistic Regression" / f"Roc_Curve_LR_with_penalty_{penalty}"
+    RocCurveDisplay.from_estimator(lrc, X_test, y_test)
+
+    plt.savefig(filepath)
+    plt.close()
+
+
+    return LrcModel(lrc, cls_rprt, accuracy, roc_auc, cv_results)
 
 
 
@@ -125,8 +187,12 @@ def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScal
     
     setup.setup_dataset()
 
+    lr_obsrv_path = Path.cwd().parent / "Observations" / "Logistic Regression"
 
-    logs = Path.cwd().parent / "Dataset" / "Observations" / "Logistic Regression Metrics.txt"
+    if not lr_obsrv_path.exists():
+        lr_obsrv_path.mkdir(parents=True, exist_ok=True)
+
+    logs = Path.cwd().parent / "Observations" / "Logistic Regression" / "Logistic Regression Metrics.txt"
     
     if logs.exists():
         logs.unlink()
@@ -181,6 +247,7 @@ def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScal
     print(f'{best_models[0].get_classification_report()}')
     print('\nPrecise Accuracy:'.ljust(20) + f'{best_models[0].get_accuracy()}')
     print(f'ROC_AUC: {best_models[0].get_roc_auc()}\n')
+    print(f'\nCross Validation Results {best_models[0].get_model()}:\n\n{best_models[0].get_cv_results()}\n')
 
 
     logfile.write('\n\n✍️\t======= Results =======\n')
@@ -190,6 +257,7 @@ def train_model() -> Dict[str, Union[LogisticRegressionCV, Optional[StandardScal
     logfile.write(f'{best_models[0].get_classification_report()}\n')
     logfile.write('\nPrecise Accuracy:'.ljust(20) + f'{best_models[0].get_accuracy()}\n')
     logfile.write(f'ROC_AUC: {best_models[0].get_roc_auc()}\n')
+    logfile.write(f'\nCross Validation Results {best_models[0].get_model()}:\n\n{best_models[0].get_cv_results()}\n')
 
     logfile.close()
 

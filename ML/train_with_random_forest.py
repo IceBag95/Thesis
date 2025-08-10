@@ -3,10 +3,11 @@ from typing import Dict, List, Optional, Union
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.discriminant_analysis import StandardScaler
 from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import classification_report, accuracy_score, roc_auc_score
+from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score, precision_score, recall_score, f1_score, RocCurveDisplay
 import setup
 
 
@@ -14,13 +15,14 @@ import setup
 class RfcModel:
     counter = 0
 
-    def __init__(self, model, cls_rprt, accuracy, roc_auc):
+    def __init__(self, model, cls_rprt, accuracy, roc_auc, cv_results):
         RfcModel.counter += 1
-        self.id = RfcModel.counter
+        self.id = f'rfc{RfcModel.counter}'
         self.model = model
         self.cls_rprt = cls_rprt
         self.accuracy = accuracy
         self.roc_auc = roc_auc
+        self.cv_results = cv_results
 
     def get_id(self):
         return self.id
@@ -36,6 +38,9 @@ class RfcModel:
     
     def get_roc_auc(self):
         return self.roc_auc
+    
+    def get_cv_results(self):
+        return self.cv_results
     
     
 
@@ -81,10 +86,39 @@ def plot_errors_for_n_estimators(X_train: pd.DataFrame, y_train: pd.DataFrame, c
     plt.title(f'Random Forest Validation Error per Fold\nCriterion "{criterion}"')
     plt.legend()
     plt.grid(True)
-    plt.savefig(f'../Dataset/Observations/plot_of_errors_random_forest_all_folds_with_criterion_{criterion}.png')
+    plt.savefig(f'../Observations/Random Forest/plot_of_errors_random_forest_all_folds_with_criterion_{criterion}.png')
     plt.close()
 
     return stable_index
+
+
+
+def evaluate_with_cv(model:RandomForestClassifier, X:pd.DataFrame, y:pd.DataFrame, k=5):
+    skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+
+    accuracies, aucs, precisions, recalls, f1s = [], [], [], [], []
+
+    for train_idx, test_idx in skf.split(X, y):
+        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
+        y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+
+        model.fit(X_train, y_train)
+        y_pred = model.predict(X_test)
+
+        accuracies.append(accuracy_score(y_test, y_pred))
+        aucs.append(roc_auc_score(y_test, model.predict_proba(X_test)[:, 1]))
+        precisions.append(precision_score(y_test, y_pred))
+        recalls.append(recall_score(y_test, y_pred))
+        f1s.append(f1_score(y_test, y_pred))
+
+    results = {
+        'Metric': ['Accuracy', 'ROC AUC', 'Precision', 'Recall', 'F1 Score'],
+        'Mean': [np.mean(accuracies), np.mean(aucs), np.mean(precisions), np.mean(recalls), np.mean(f1s)],
+        'Std Dev': [np.std(accuracies), np.std(aucs), np.std(precisions), np.std(recalls), np.std(f1s)]
+    }
+
+    results_df = pd.DataFrame(results)
+    return results_df
 
 
 
@@ -94,7 +128,7 @@ def train_nth_model(criterion: str,
                     X_test: pd.DataFrame,
                     y_test: pd.DataFrame) -> RfcModel:
     
-    logs = Path.cwd().parent / "Dataset" / "Observations" / "Random Forest Metrics.txt"
+    logs = Path.cwd().parent / "Observations" / "Random Forest" / "Random Forest Metrics.txt"
     logfile = logs.open(mode='a')
     logfile.write(f"\n✍️ ========= {criterion.upper()} =========\n\n")
     rfc = RandomForestClassifier(random_state=101,criterion=criterion, class_weight='balanced')
@@ -131,10 +165,12 @@ def train_nth_model(criterion: str,
 
     rfc.fit(X_train,y_train)
 
+    cv_results = evaluate_with_cv(rfc, X_train, y_train)
+
     preds = rfc.predict(X_test)
 
     acc = accuracy_score(y_test, preds)
-    roc_auc = roc_auc_score(y_test, preds)
+    roc_auc = roc_auc_score(y_test, rfc.predict_proba(X_test)[:, 1])
     cls_rprt = classification_report(y_test,preds)
     print(classification_report(y_test,preds))
     print(f'\nAccuracy: {acc}')
@@ -142,9 +178,31 @@ def train_nth_model(criterion: str,
     logfile.write(f'\nAccuracy: {acc}\n')
     print(f'ROC-AUC: {roc_auc}\n')
     logfile.write(f'ROC-AUC: {roc_auc}\n\n')
+    print(f'\nCross Validation Results {rfc}:\n\n{cv_results}\n')
+    logfile.write(f'\nCross Validation Results {rfc}:\n\n{cv_results}\n')
     logfile.close()
 
-    ret_model = RfcModel(rfc, cls_rprt, acc, roc_auc)
+    # Make and save image for confusion matrix for this model
+    filepath = Path.cwd().parent / "Observations" / "Random Forest" / f"Confusion_Matrix_RFC_with_criterion_{criterion}"
+    cm = confusion_matrix(y_test,preds)
+    
+    plt.figure(figsize=(6,5))
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+    plt.title(f'Confusion Matrix\nRandom Forest with criterion: {criterion}')
+    plt.xlabel('Predicted Class')
+    plt.ylabel('Actual Class')
+    plt.savefig(filepath)
+    plt.close()
+
+    # Make and save Roc Curve graph for this model
+    filepath = Path.cwd().parent / "Observations" / "Random Forest" / f"Roc_Curve_RFC_with_criterion_{criterion}"
+    RocCurveDisplay.from_estimator(rfc, X_test, y_test)
+
+    plt.savefig(filepath)
+    plt.close()
+
+    ret_model = RfcModel(rfc, cls_rprt, acc, roc_auc, cv_results)
+    
     return ret_model
 
 
@@ -183,13 +241,17 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
 
     print('Entered random forest training')
 
-    logs = Path.cwd().parent / "Dataset" / "Observations" / "Random Forest Metrics.txt"
+    setup.setup_dataset()
+    rf_obsrv_path = Path.cwd().parent / "Observations" / "Random Forest"
+
+    if not rf_obsrv_path.exists():
+        rf_obsrv_path.mkdir(parents=True, exist_ok=True)
+
+    logs = Path.cwd().parent / "Observations" / "Random Forest" / "Random Forest Metrics.txt"
     if (logs.exists()):
         logs.unlink()
 
     logs.touch()
-
-    setup.setup_dataset()
 
     df = pd.read_csv("../Dataset/clean_data.csv")
 
@@ -240,10 +302,12 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
     logfile.write('\nAccuracy:'.ljust(15) + str(best_models[0].get_accuracy()) + '\n')
     print(f'ROC-AUC:'.ljust(15) + str(best_models[0].get_roc_auc()) + '\n')
     logfile.write(f'ROC-AUC:'.ljust(15) + str(best_models[0].get_roc_auc()) + '\n\n')
+    print(f'\n✍️ Cross Validation Results {best_models[0].get_id()}:\n{best_models[0].get_cv_results()}\n')
+    logfile.write(f'\n✍️ Cross Validation Results {best_models[0].get_id()}:\n{best_models[0].get_cv_results()}\n')
     
     if len(best_models) > 1:
-        print(f'Picking rfc{best_models[0].get_id()} to continue')
-        logfile.write(f'Picking rfc{best_models[0].get_id()} to continue\n\n')
+        print(f'Picking {best_models[0].get_id()} to continue')
+        logfile.write(f'Picking {best_models[0].get_id()} to continue\n\n')
     
     rfc = best_models[0].get_model()
     print(f'Best model: {rfc}')
