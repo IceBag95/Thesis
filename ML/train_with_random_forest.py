@@ -2,10 +2,11 @@ from pathlib import Path
 from typing import Dict, List, Optional, Union
 import pandas as pd
 import numpy as np
+from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.discriminant_analysis import StandardScaler
-from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split
+from sklearn.model_selection import GridSearchCV, StratifiedKFold, train_test_split, cross_validate
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score, precision_score, recall_score, f1_score, RocCurveDisplay
 import setup
@@ -93,32 +94,18 @@ def plot_errors_for_n_estimators(X_train: pd.DataFrame, y_train: pd.DataFrame, c
 
 
 
-def evaluate_with_cv(model:RandomForestClassifier, X:pd.DataFrame, y:pd.DataFrame, k=5):
-    skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+def evaluate_with_cv(model:RandomForestClassifier, X: pd.DataFrame, y: pd.Series, k=5)  -> pd.DataFrame:
+    scoring = ['accuracy', 'roc_auc', 'precision', 'recall', 'f1']
 
-    accuracies, aucs, precisions, recalls, f1s = [], [], [], [], []
-
-    for train_idx, test_idx in skf.split(X, y):
-        X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
-        y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
-
-        model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
-
-        accuracies.append(accuracy_score(y_test, y_pred))
-        aucs.append(roc_auc_score(y_test, model.predict_proba(X_test)[:, 1]))
-        precisions.append(precision_score(y_test, y_pred))
-        recalls.append(recall_score(y_test, y_pred))
-        f1s.append(f1_score(y_test, y_pred))
+    cv_results = cross_validate(model, X, y, cv=k, scoring=scoring)
 
     results = {
-        'Metric': ['Accuracy', 'ROC AUC', 'Precision', 'Recall', 'F1 Score'],
-        'Mean': [np.mean(accuracies), np.mean(aucs), np.mean(precisions), np.mean(recalls), np.mean(f1s)],
-        'Std Dev': [np.std(accuracies), np.std(aucs), np.std(precisions), np.std(recalls), np.std(f1s)]
+        'Metric': scoring,
+        'Mean': [np.mean(cv_results[f'test_{m}']) for m in scoring],
+        'Std Dev': [np.std(cv_results[f'test_{m}']) for m in scoring]
     }
 
-    results_df = pd.DataFrame(results)
-    return results_df
+    return pd.DataFrame(results)
 
 
 
@@ -236,6 +223,54 @@ def pick_best_model_based_on(metric: str, models_list: List[RfcModel]) -> List[R
 
 
 
+def external_test(model:RandomForestClassifier, scaler:StandardScaler=None, remove_outliers=False) -> pd.DataFrame:
+
+    print("\n\n🎯Proceeding to external testing\n\n")
+
+    setup.setup_external_dataset()
+
+    df = pd.read_csv("../Dataset/External_dataset/uci_clean_data.csv")
+
+    if remove_outliers == True:
+        # Removing outliers for Logistic Regression
+        print(f'\n⏳ Removing columns with outliers for Logistic Regression in external dataset')
+        idx_list = []
+        for col in df.columns:
+            zscores = np.abs(stats.zscore(df[col]))
+            temp = df[zscores > 3]                   # anything that scores above 3 is considered an outlier
+            current_idx_list = temp.index            # get the indexes of the rows returned and store them into a variable 
+            for idx in current_idx_list:
+                if idx not in idx_list:
+                    idx_list.append(idx)
+        print(f'>> Found and proceeding to remove {len(idx_list)} rows with outlier values in at least one of their columns...')
+        df = df.drop(index=idx_list).reset_index(drop=True)
+        print('✅ Removal SUCCESS\n')
+
+    X = pd.get_dummies(df.drop('target',axis=1),drop_first=True)
+    y = df['target']
+
+    if remove_outliers == True:
+        X = pd.DataFrame(scaler.transform(X), columns=X.columns)
+
+    preds = model.predict(X)
+    probs = model.predict_proba(X)[:, 1]
+
+    results = {
+        'Metric': ['Accuracy', 'ROC AUC', 'Precision', 'Recall', 'F1 Score'],
+        'Value': [
+            accuracy_score(y, preds),
+            roc_auc_score(y, probs),
+            precision_score(y, preds),
+            recall_score(y, preds),
+            f1_score(y, preds)
+        ]
+    }
+
+    results = pd.DataFrame(results)
+
+    return results
+
+
 
 def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardScaler]]]:
 
@@ -291,10 +326,12 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
     if len(best_models) > 1:
         msg = 'Tie between:   '
         for model in best_models:
-            msg += f'rfc{model.get_id()} '
+            msg += f'{model.get_id()} '
         
         print(msg)
         logfile.write(f'\n{msg}\n')
+
+    external_testing_results =  external_test(best_models[0].get_model())
     
     print(best_models[0].get_classification_report())
     logfile.write(f'{best_models[0].get_classification_report()}\n')
@@ -304,6 +341,9 @@ def train_model() -> Dict[str, Union[RandomForestClassifier, Optional[StandardSc
     logfile.write(f'ROC-AUC:'.ljust(15) + str(best_models[0].get_roc_auc()) + '\n\n')
     print(f'\n✍️ Cross Validation Results {best_models[0].get_id()}:\n{best_models[0].get_cv_results()}\n')
     logfile.write(f'\n✍️ Cross Validation Results {best_models[0].get_id()}:\n{best_models[0].get_cv_results()}\n')
+    print(f'\n\n🎯External testing Results {best_models[0].get_id()}:\n\n{external_testing_results}\n')
+    logfile.write(f'\n\n🎯External testing Results {best_models[0].get_id()}:\n\n{external_testing_results}\n')
+
     
     if len(best_models) > 1:
         print(f'Picking {best_models[0].get_id()} to continue')

@@ -1,0 +1,17 @@
+{
+    "age": "age",
+    "sex": "sex",
+    "cp": "Chest pain type",
+    "trestbps": "trestbps",
+    "chol": "cholesterol",
+    "fbs": "fasting blood sugar",
+    "restecg": "resting ecg",
+    "thalach": "max heart rate",
+    "exang": "exercise angina",
+    "oldpeak": "oldpeak",
+    "slope":  "ST slope",
+    "ca": "",
+    "thal": "",
+    "target": "target"
+   
+}

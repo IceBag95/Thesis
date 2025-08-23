@@ -6,9 +6,10 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.tree import DecisionTreeClassifier
 import pandas as pd
 import numpy as np
+from scipy import stats
 import matplotlib.pyplot as plt
 import seaborn as sns
-from sklearn.model_selection import GridSearchCV, train_test_split
+from sklearn.model_selection import GridSearchCV, train_test_split, cross_validate
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score, roc_auc_score, precision_score, recall_score, f1_score, RocCurveDisplay
 from sklearn.model_selection import StratifiedKFold
 from sklearn.utils.class_weight import compute_sample_weight
@@ -69,32 +70,67 @@ def plot_errors_for_n_estimators(base_learner: DecisionTreeClassifier,
 
 
 
-def evaluate_with_cv(model:AdaBoostClassifier, X:pd.DataFrame, y:pd.DataFrame, k=5):
-	skf = StratifiedKFold(n_splits=k, shuffle=True, random_state=42)
+def evaluate_with_cv(model:AdaBoostClassifier, X: pd.DataFrame, y: pd.Series, k=5)  -> pd.DataFrame:
+    scoring = ['accuracy', 'roc_auc', 'precision', 'recall', 'f1']
 
-	accuracies, aucs, precisions, recalls, f1s = [], [], [], [], []
+    cv_results = cross_validate(model, X, y, cv=k, scoring=scoring)
 
-	for train_idx, test_idx in skf.split(X, y):
-		X_train, X_test = X.iloc[train_idx], X.iloc[test_idx]
-		y_train, y_test = y.iloc[train_idx], y.iloc[test_idx]
+    results = {
+        'Metric': scoring,
+        'Mean': [np.mean(cv_results[f'test_{m}']) for m in scoring],
+        'Std Dev': [np.std(cv_results[f'test_{m}']) for m in scoring]
+    }
 
-		model.fit(X_train, y_train)
-		y_pred = model.predict(X_test)
+    return pd.DataFrame(results)
 
-		accuracies.append(accuracy_score(y_test, y_pred))
-		aucs.append(roc_auc_score(y_test, model.predict_proba(X_test)[:, 1]))
-		precisions.append(precision_score(y_test, y_pred))
-		recalls.append(recall_score(y_test, y_pred))
-		f1s.append(f1_score(y_test, y_pred))
+
+
+def external_test(model:AdaBoostClassifier, scaler:StandardScaler=None, remove_outliers=False) -> pd.DataFrame:
+
+	print("\n\n🎯Proceeding to external testing\n\n")
+
+	setup.setup_external_dataset()
+
+	df = pd.read_csv("../Dataset/External_dataset/uci_clean_data.csv")
+
+	if remove_outliers == True:
+		# Removing outliers for Logistic Regression
+		print(f'\n⏳ Removing columns with outliers for Logistic Regression in external dataset')
+		idx_list = []
+		for col in df.columns:
+			zscores = np.abs(stats.zscore(df[col]))
+			temp = df[zscores > 3]                   # anything that scores above 3 is considered an outlier
+			current_idx_list = temp.index            # get the indexes of the rows returned and store them into a variable 
+			for idx in current_idx_list:
+				if idx not in idx_list:
+					idx_list.append(idx)
+		print(f'>> Found and proceeding to remove {len(idx_list)} rows with outlier values in at least one of their columns...')
+		df = df.drop(index=idx_list).reset_index(drop=True)
+		print('✅ Removal SUCCESS\n')
+
+	X = pd.get_dummies(df.drop('target',axis=1),drop_first=True)
+	y = df['target']
+
+	if remove_outliers == True:
+		X = pd.DataFrame(scaler.transform(X), columns=X.columns)
+
+	preds = model.predict(X)
+	probs = model.predict_proba(X)[:, 1]
 
 	results = {
 		'Metric': ['Accuracy', 'ROC AUC', 'Precision', 'Recall', 'F1 Score'],
-		'Mean': [np.mean(accuracies), np.mean(aucs), np.mean(precisions), np.mean(recalls), np.mean(f1s)],
-		'Std Dev': [np.std(accuracies), np.std(aucs), np.std(precisions), np.std(recalls), np.std(f1s)]
+		'Value': [
+			accuracy_score(y, preds),
+			roc_auc_score(y, probs),
+			precision_score(y, preds),
+			recall_score(y, preds),
+			f1_score(y, preds)
+		]
 	}
 
-	results_df = pd.DataFrame(results)
-	return results_df
+	results = pd.DataFrame(results)
+
+	return results
 
 
 
@@ -156,6 +192,9 @@ def train_model() -> Dict[str, Union[AdaBoostClassifier, Optional[StandardScaler
 
 	ada_boost_model.fit(X_train,y_train, sample_weight=sample_weights)
 	preds = ada_boost_model.predict(X_test)
+
+	external_testing_results = external_test(ada_boost_model)
+
 	print('\n\n✍️ ======= AdaBoost model =======\n')
 	logfile.write('\n\n✍️ ======= AdaBoost model =======\n\n')
 	print(classification_report(y_test,preds))
@@ -166,6 +205,8 @@ def train_model() -> Dict[str, Union[AdaBoostClassifier, Optional[StandardScaler
 	logfile.write(f'ROC-AUC: {roc_auc_score(y_test, ada_boost_model.predict_proba(X_test)[:, 1])}\n')
 	print(f'\n✍️ Cross Validation Results for AdaBoost model:\n\n{cv_results}\n\n')
 	logfile.write(f'\n✍️ Cross Validation Results for AdaBoost model:\n\n{cv_results}\n\n')
+	print(f'\n\n🎯External testing Results:\n\n{external_testing_results}\n')
+	logfile.write(f'\n\n🎯External testing Results :\n\n{external_testing_results}\n')
 	logfile.close()
 
 	# Make and save image for confusion matrix for this model

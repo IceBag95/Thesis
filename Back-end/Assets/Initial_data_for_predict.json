@@ -93,7 +93,7 @@
                                     "actual_value": "1"
                                 },
                                 {
-                                    "shown_value": "Άλλο",
+                                    "shown_value": "Πιθανή ή σίγουρη υπερτροφία αριστερής βαλβίδας",
                                     "actual_value": "2"
                                 }
                             ],
@@ -131,6 +131,25 @@
                 "upper_limit": 6.2,
                 "lower_limit": 0
             }
+        },
+        {
+            "for_column": "ST slope",
+            "question"  : "Το ST τμήμα κατά την άσκηση είναι:",
+            "answers"   : [
+                                {
+                                    "shown_value": "Ανοδικό",
+                                    "actual_value": "0"
+                                }, 
+                                {
+                                    "shown_value": "Επίπεδο",
+                                    "actual_value": "1"
+                                },
+                                {
+                                    "shown_value": "Καθοδικό",
+                                    "actual_value": "2"
+                                }
+                            ],
+            "limits": {}
         }
     ]
 
