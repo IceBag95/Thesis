@@ -229,7 +229,7 @@ def external_test(model:RandomForestClassifier, scaler:StandardScaler=None, remo
 
     setup.setup_external_dataset()
 
-    df = pd.read_csv("../Dataset/External_dataset/uci_clean_data.csv")
+    df = pd.read_csv("../Dataset/External_dataset/cleveland_clean_data.csv")
 
     if remove_outliers == True:
         # Removing outliers for Logistic Regression
