@@ -28,10 +28,8 @@ def setup_dataset() -> None:
     df['Chest pain type'] = df['Chest pain type'] - 1
     df['target'] = df['target'].astype(bool)
 
-    dummy_df = pd.get_dummies(df['sex'])
-    dummy_df.columns = ['Male', 'Female']
-    df = df.drop('sex', axis=1)
-    df = pd.concat([df[['age']], dummy_df[['Male']], df.drop(['age'], axis=1)], axis=1)
+    df = df.rename(columns={"sex": "Male"})
+    df["Male"] = df["Male"].map({1.0: True, 0.0: False})
     print('\n👀Trues and Falses in column Target:')
     df2 = df['target'].value_counts()
     df2_normaliazed = df['target'].value_counts(normalize=True)
@@ -110,14 +108,14 @@ def setup_external_dataset():
     print('\n⏳ Removing corrupted, matching and dublicate data...')
     df = df.dropna()
     df.drop(df.columns[df.columns.str.contains('unnamed', case=False)], axis=1, inplace=True)
-    df.drop(df[(df['target'] > 4)].index, inplace=True)
+    df.drop(df[(df['target'] != 1) & (df['target'] != 0)].index, inplace=True)
     df.drop(df[df['cholesterol'] == 0].index, inplace=True)
     df = df[df['ST slope'] <= 2]
     df.drop(df[df.duplicated()].index, inplace=True)
 
 
     # Since this is a proof of concept these lines will be commented out but they are necessary in real life replication
-    # # Finding common rows
+    # Finding common rows
     # original_df = pd.read_csv("../Dataset/raw_data.csv")
     # common_df = df[df.isin(original_df.to_dict(orient='list')).all(axis=1)]
     # print('Matcing rows:\n', common_df)
@@ -126,16 +124,14 @@ def setup_external_dataset():
     # df = pd.concat([df, common_df]).drop_duplicates(keep=False)
     # print('df with removed duplicates:\n', df)
 
-    # print('\n✅ Removal SUCCESS\n')
+    print('\n✅ Removal SUCCESS\n')
 
     print('\n⏳ Adjusting data to be better suited for training...')
     df['target'] = df['target'].astype(bool)                           # Reminder: In the case of uci, any non 0 value will become True by default, so nw for categories 1-4
     df = df[~(df < 0).any(axis=1)]
 
-    dummy_df = pd.get_dummies(df['sex'])
-    dummy_df.columns = ['Male', 'Female']
-    df = df.drop('sex', axis=1)
-    df = pd.concat([df[['age']], dummy_df[['Male']], df.drop(['age'], axis=1)], axis=1)
+    df = df.rename(columns={"sex": "Male"})
+    df["Male"] = df["Male"].map({1.0: True, 0.0: False})
     print('\n👀Trues and Falses in column Target:')
     df2 = df['target'].value_counts()
     df2_normaliazed = df['target'].value_counts(normalize=True)
